@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+script_dir=$( cd "$( dirname "$0" )" && pwd )
+
+cd $script_dir/..
+
+source /usr/local/share/chruby/chruby.sh
+chruby 2.5.1
+bundle exec ruby app/app.rb

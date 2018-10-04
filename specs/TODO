@@ -1,0 +1,16 @@
+-----
+
+echo "hello  world"
+
+-----
+
+echo hello \
+world
+
+-----
+
+cat # (no arguments)
+ctrl+c
+ls
+
+-----
