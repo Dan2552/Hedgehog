@@ -14,3 +14,15 @@ ctrl+c
 ls
 
 -----
+
+# bash-style assignment with no spaces
+HELLO=hello; echo $HELLO
+
+-----
+
+# ruby-style assignment with spaces
+hello = "hello"
+
+-----
+
+RAILS_ENV=production bundle exec rails c
