@@ -6,7 +6,9 @@ module Hedgehog
       end
 
       def self.binaries
-        all.map { |path| Dir["#{path}/*"] }.flatten
+        all.map { |path| Dir["#{path}/*"] }
+          .flatten
+          .select { |path| File.file?(path) && File.executable?(path) }
       end
     end
   end

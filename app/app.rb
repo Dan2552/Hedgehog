@@ -21,6 +21,7 @@ Hedgehog::Settings.configure do |config|
   config.binary_in_path_finder = Hedgehog::BinaryInPathFinder::Ruby.new
   config.disabled_built_ins = []
   config.execution_order = [
+    Hedgehog::Execution::Noop.new,
     Hedgehog::Execution::Alias.new,
     Hedgehog::Execution::Binary.new,
     Hedgehog::Execution::Ruby.new,

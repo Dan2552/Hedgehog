@@ -4,8 +4,12 @@ unless Hedgehog::Settings
          .map(&:to_s)
          .include?("cd")
 
-  function "cd" do |*args|
-    Dir.chdir(args.join(" ").gsub("~", "#{ENV['HOME']}"))
+  function "cd" do |args|
+    begin
+      Dir.chdir(args.to_s.gsub("~", "#{ENV['HOME']}"))
+    rescue Exception => e
+      puts e.to_s.gsub(" @ dir_s_chdir", "")
+    end
   end
 
 end

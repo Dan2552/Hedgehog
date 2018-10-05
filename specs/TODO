@@ -1,28 +1,11 @@
------
-
-echo "hello  world"
-
------
-
-echo hello \
-world
+echo "hello" | grep b
+echo $?
 
 -----
 
-cat # (no arguments)
-ctrl+c
-ls
+echo "hello" | grep b
+$?
 
 -----
 
-# bash-style assignment with no spaces
-HELLO=hello; echo $HELLO
-
------
-
-# ruby-style assignment with spaces
-hello = "hello"
-
------
-
-RAILS_ENV=production bundle exec rails c
+echo $(pwd)

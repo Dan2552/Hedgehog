@@ -1,9 +1,5 @@
 module Hedgehog
   module DSL
-    def run(command_string)
-      Hedgehog::Execution::Runner.new.run(command_string)
-    end
-
     def prompt(&blk)
       state = Hedgehog::State.shared_instance
 

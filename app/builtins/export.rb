@@ -4,8 +4,8 @@ unless Hedgehog::Settings
          .map(&:to_s)
          .include?("export")
 
-  function "export" do |variable_assignment|
-    var, value = variable_assignment.split("=")
+  function "export" do |args|
+    var, value = args.to_s.split("=")
     Hedgehog::State.shared_instance.env[var] = value
   end
 

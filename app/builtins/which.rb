@@ -4,11 +4,11 @@ unless Hedgehog::Settings
          .map(&:to_s)
          .include?("which")
 
-  function "which" do |first_word|
+  function "which" do |args|
     binary = Hedgehog::Settings
       .shared_instance
       .binary_in_path_finder
-      .call(first_word)
+      .call(args.first)
 
     puts binary
   end

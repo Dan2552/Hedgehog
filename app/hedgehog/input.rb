@@ -4,6 +4,10 @@ module Hedgehog
       @show_prompt = true
       while true
         command_string = Readline.readline(get_prompt, true)
+
+        # CMD+D makes nil for some reason
+        exit if command_string.nil?
+
         Bundler.send(:with_env, env) do
           result = runner.run(command_string)
           @show_prompt = result
@@ -20,7 +24,8 @@ module Hedgehog
       if @show_prompt
         prompt.call
       else
-        ""
+        colorless = prompt.call.gsub(/\e\[(\d+)(;\d+)*m/, "").gsub("\e[m", "")
+        " " * colorless.length
       end
     end
 

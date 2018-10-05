@@ -2,13 +2,15 @@ module Hedgehog
   module Execution
     class Alias
       def validate(command)
-        aliases[command.first_word].present?
+        aliases[command.binary_name].present?
       end
 
       def run(command)
-        aliases[command.first_word].call(*command.arguments)
+        aliases[command.binary_name].call(command.arguments)
       rescue LocalJumpError
         # Allow calls to `break`
+      rescue Exception => e
+        puts e
       end
 
       private

@@ -4,8 +4,8 @@ unless Hedgehog::Settings
          .map(&:to_s)
          .include?("exit")
 
-  function "exit" do |*args|
-    exit(*args)
+  function "exit" do |args|
+    exit!(args.to_i)
   end
 
 end

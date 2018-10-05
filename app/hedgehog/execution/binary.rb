@@ -6,8 +6,14 @@ module Hedgehog
       end
 
       def run(command)
-        Process.spawn(command.with_binary_path)
-        Process.wait
+        begin
+          pid = Process.spawn(command.with_binary_path)
+          Process.wait
+        rescue Interrupt
+          Process.kill("INT", pid)
+          Process.wait
+          puts "⏎"
+        end
       end
     end
   end
