@@ -15,7 +15,7 @@ module Hedgehog
       end
     rescue Interrupt
       puts ""
-      await_user_input
+      Hedgehog::Input.new.await_user_input
     end
 
     private

@@ -5,7 +5,3 @@ echo $?
 
 echo "hello" | grep b
 $?
-
------
-
-echo $(pwd)
