@@ -8,10 +8,8 @@ module Hedgehog
         # CMD+D makes nil for some reason
         exit if command_string.nil?
 
-        Bundler.send(:with_env, env) do
-          result = runner.run(command_string)
-          @show_prompt = result
-        end
+        result = runner.run(command_string)
+        @show_prompt = result
       end
     rescue Interrupt
       puts ""
@@ -31,10 +29,6 @@ module Hedgehog
 
     def runner
       @runner ||= Hedgehog::Execution::Runner.new
-    end
-
-    def env
-      Hedgehog::State.shared_instance.env
     end
   end
 end

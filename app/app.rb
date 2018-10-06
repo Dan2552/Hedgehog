@@ -34,10 +34,14 @@ Dir[Bundler.root.join("app", "builtins", "**")].each do |f|
   require f
 end
 
-# Load ~/.hedgehog
-#
-load "#{ENV['HOME']}/.hedgehog"
+function("cd").call("~")
 
-# Start
-#
-Hedgehog::Input.new.await_user_input
+Bundler.send(:with_env, Hedgehog::State.shared_instance.env) do
+  # Load ~/.hedgehog
+  #
+  load "#{ENV['HOME']}/.hedgehog"
+
+  # Start
+  #
+  Hedgehog::Input.new.await_user_input
+end
