@@ -39,7 +39,12 @@ function("cd").call("~")
 Bundler.send(:with_env, Hedgehog::State.shared_instance.env) do
   # Load ~/.hedgehog
   #
-  load "#{ENV['HOME']}/.hedgehog"
+  begin
+    load "#{ENV['HOME']}/.hedgehog"
+  rescue LoadError
+    puts "No .hedgehog file found, so using default configuration."
+    puts
+  end
 
   # Start
   #
