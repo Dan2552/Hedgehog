@@ -39,7 +39,8 @@ function("cd").call("~")
 Bundler.send(:with_env, Hedgehog::State.shared_instance.env) do
   # Load ~/.hedgehog
   #
-  load "#{ENV['HOME']}/.hedgehog"
+  dot_hedgehog = "#{ENV['HOME']}/.hedgehog"
+  load dot_hedgehog if File.exists?(dot_hedgehog)
 
   # Start
   #
