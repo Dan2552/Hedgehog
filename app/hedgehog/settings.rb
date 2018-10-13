@@ -8,8 +8,14 @@ module Hedgehog
       yield(shared_instance)
     end
 
-    attr_accessor :binary_in_path_finder,
-                  :disabled_built_ins,
-                  :execution_order
+    attr_accessor :binary_in_path_finder
+    attr_accessor :disabled_built_ins
+    attr_accessor :execution_order
+
+    # Disables user input/interaction.
+    #
+    # E.g. to require elsewhere, or for specs.
+    #
+    attr_accessor :disable_interaction
   end
 end
