@@ -1,7 +1,0 @@
-echo "hello" | grep b
-echo $?
-
------
-
-echo "hello" | grep b
-$?
