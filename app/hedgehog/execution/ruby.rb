@@ -6,8 +6,8 @@ module Hedgehog
           @shared_instance ||= new
         end
 
-        def _run(command)
-          _binding.eval(command.original)
+        def _run(str)
+          _binding.eval(str)
         end
 
         private
@@ -22,7 +22,7 @@ module Hedgehog
       end
 
       def run(command)
-        puts "=> #{Hedgehog::Execution::Ruby::Binding.shared_instance._run(command).inspect}"
+        puts "=> #{Hedgehog::Execution::Ruby::Binding.shared_instance._run(command.original).inspect}"
       rescue Exception => e
         puts e
       end

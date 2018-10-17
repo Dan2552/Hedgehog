@@ -6,12 +6,16 @@ module Hedgehog
     # - Prints autosuggestions
     #
     class LineEditor
+      def initialize(handle_teletype: true)
+        @handle_teletype = handle_teletype
+      end
+
       # Similarly to the readline library, the aim is to get a line of text.
       #
       # - returns: String, being the line
       #
       def readline(prompt)
-        Hedgehog::Teletype.silence!
+        Hedgehog::Teletype.silence! if handle_teletype
         @prompt = prompt
         print("\r")
         print(prompt)
@@ -25,7 +29,7 @@ module Hedgehog
           end
         end
       ensure
-        Hedgehog::Teletype.restore!
+        Hedgehog::Teletype.restore! if handle_teletype
         @line = nil
         @suffix = nil
         @cursor_position = nil
@@ -33,6 +37,11 @@ module Hedgehog
       end
 
       private
+
+      # Whether teletype silencing should be managed by this class. This should
+      # only be disabled if called from another input source (e.g. Editor).
+      #
+      attr_reader :handle_teletype
 
       attr_reader :prompt
 
@@ -107,7 +116,7 @@ module Hedgehog
 
         # Put the cursor back to where it was
         #
-        print("\e[D" * (line_size - before))
+        print("\e[D" * [(line_size - before), 0].max)
         # hello world
         #        ^ (<-4 to 7)
 
@@ -123,12 +132,14 @@ module Hedgehog
       # - returns: true if \n, otherwise false
       def handle_character
         self.char = characters.get_next
+
         return go_left if char.is?(:left)
         return go_right if char.is?(:right)
         return :cancel if char.is?(:ctrl_d)
-        return interupt if char.is?(:ctrl_c)
+        return interrupt if char.is?(:ctrl_c)
         return backspace if char.is?(:backspace)
         return :finish if char.is?(:enter)
+        return auto_complete if char.is?(:tab)
 
         return if char.unknown? || char.known_special?
 
@@ -155,7 +166,7 @@ module Hedgehog
         redraw
       end
 
-      def interupt
+      def interrupt
         return unless line.present?
         redraw(without_suffix: true)
         print(str_with_color("^C", color: 0, bg_color: 15))
@@ -167,6 +178,57 @@ module Hedgehog
         bg_color = "\x1b[48;5;#{bg_color}m" if bg_color
         reset = "\x1b[0m"
         "#{color}#{bg_color}#{str}#{reset}"
+      end
+
+      def auto_complete
+        complete_proc = if line.include?(" ")
+                          nil
+                        else
+                          Hedgehog::Input::Choice::PATH_BINARY_PROC
+                        end
+
+        current_word, range = current_word_and_range
+
+        result = Hedgehog::Input::Choice
+          .new(handle_teletype: false, completion_proc: complete_proc)
+          .read_choice(current_word, size(prompt) + range.last)
+
+        if result
+          line[range] = result
+          self.cursor_position = range.first + result.length
+        else
+          self.cursor_position = range.last + 1
+        end
+
+        redraw
+      end
+
+      # The word that the cursor is on and the character it starts on.
+      #
+      # For example
+      #   01234567890
+      #   hello world
+      #          ^
+      # would return ["world", 6..10]
+      #
+      def current_word_and_range
+        words = line.split(Hedgehog::Command::UNESCAPED_WORD_REGEX)
+
+        iterated_chars = 0
+        this_is_the_word = false
+        words.each do |word|
+          word_started_on = iterated_chars
+          word.each_char do |char|
+            this_is_the_word = true if iterated_chars == cursor_position - 1
+            iterated_chars = iterated_chars + 1
+          end
+          word_ended_on = iterated_chars - 1
+          return [word, word_started_on..word_ended_on] if this_is_the_word
+
+          # For the space character
+          iterated_chars = iterated_chars + 1
+        end
+        return ["", cursor_position..cursor_position]
       end
     end
   end

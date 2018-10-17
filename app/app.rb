@@ -3,6 +3,7 @@ require_relative "hedgehog/teletype"
 begin
   require 'active_support/all'
   require_relative "hedgehog/dsl"
+  require 'shellwords'
 
   include Hedgehog::DSL
 

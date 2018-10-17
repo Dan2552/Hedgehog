@@ -1,15 +1,17 @@
 module Hedgehog
   module Environment
-    class Path
-      def self.all
+    module Path
+      def all
         ENV['PATH'].split(":")
       end
+      module_function :all
 
-      def self.binaries
+      def binaries
         all.map { |path| Dir["#{path}/*"] }
           .flatten
           .select { |path| File.file?(path) && File.executable?(path) }
       end
+      module_function :binaries
     end
   end
 end

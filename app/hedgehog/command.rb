@@ -106,7 +106,7 @@ module Hedgehog
             @binary_path = word
           else
             @binary_name = word
-            @binary_path = path_finder.call(binary_name)
+            @binary_path = path_finder.call(binary_name) if path_finder
           end
 
           @arguments_range = ((index + 1)..-1)
