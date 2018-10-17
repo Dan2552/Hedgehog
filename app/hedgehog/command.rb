@@ -1,16 +1,28 @@
 module Hedgehog
   class Command
+    # I.e. will only match spaces that don't have a proceeding `\`
+    #
+    UNESCAPED_SPACES_REGEX = /(?<!\\)(?:\\{2})*\ /
+
+    # I.e. will only match spaces that aren't quoted around
+    #
+    WORD_REGEX = /\s(?=(?:[^"]|"[^"]*")*$)/
+
+    # Combination of UNESCAPED_SPACES_REGEX and WORD_REGEX
+    #
+    UNESCAPED_WORD_REGEX = /(?<!\\)(?:\\{2})*\s(?=(?:[^"]|"[^"]*")*$)/
+
     class Arguments
-      def initialize(string)
-        @string = string
+      def initialize(array)
+        @array = array
       end
 
       def to_s
-        @string || ""
+        @array.join(" ")
       end
 
       def to_a
-        to_s.split(" ")
+        @array
       end
 
       def to_i
@@ -23,8 +35,6 @@ module Hedgehog
     end
 
     def <<(command)
-      array = command.split(" ")
-
       if @original
         @original += "\n" + command
       else
@@ -58,16 +68,16 @@ module Hedgehog
     # echo "hello  world"
     def arguments
       args = if @arguments_range
-               original.split(" ", @arguments_range.first + 1)[@arguments_range.first]
+               original.split(UNESCAPED_WORD_REGEX)[@arguments_range]
              else
-               args = ""
+               []
              end
 
       Hedgehog::Command::Arguments.new(args)
     end
 
     def incomplete?
-      last_line_has_backslash_at_end? || !balanced?
+      (last_line_has_backslash_at_end? || !balanced?) != false
     end
 
     def env_vars
