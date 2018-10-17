@@ -1,6 +1,11 @@
 module Hedgehog
   module Input
     class Characters
+      # How long to wait before determining the character is actually escape
+      # in seconds.
+      #
+      ESCAPE_WAIT_LIMIT = 0.2
+
       class Character
         def initialize(string)
           @string = string
@@ -29,32 +34,23 @@ module Hedgehog
       end
 
       def get_next
+        characters ||= []
         characters << STDIN.getc
 
-        return get_next if expecting_more_characters?
+        if characters.first == "\e"
+          # Because escaped sequences start with, well, escape we actually don't
+          # really know whether the first character is from a sequence or just
+          # an escape keypress. The workaround is to wait and see.
+          thread = Thread.new {
+            characters << STDIN.getc.chr
+            characters << STDIN.getc.chr
+          }
+          thread.join(ESCAPE_WAIT_LIMIT)
+          thread.kill
+        end
 
         result = Character.new(characters.join(""))
-        @characters = nil
         result
-      end
-
-      private
-
-      def characters
-        @characters ||= []
-      end
-
-      # ["\e", "[", "A"] => :up
-      # ["\e", "[", "B"] => :down
-      # ["\e", "[", "C"] => :right
-      # ["\e", "[", "D"] => :left
-      # ["\u0003"] => :ctrl_c
-      # ["\u0004"] => :ctrl_d
-      #
-      def expecting_more_characters?
-        return false unless characters.first == "\e"
-        return false if characters.last.match(/[a-zA-Z]/)
-        true
       end
     end
   end

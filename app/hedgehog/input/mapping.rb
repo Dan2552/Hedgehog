@@ -2,6 +2,7 @@ module Hedgehog
   module Input
     class Mapping
       KNOWN_KEYS = {
+        "\e" => :escape,
         "\e[A" => :up,
         "\e[B" => :down,
         "\e[C" => :right,
@@ -11,6 +12,7 @@ module Hedgehog
         "\u007F" => :backspace,
         "\n" => :enter,
         "\r" => :enter,
+        "\t" => :tab
       }
     end
   end
