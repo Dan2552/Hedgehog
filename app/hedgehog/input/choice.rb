@@ -15,8 +15,6 @@ module Hedgehog
       # The default proc is simply autocompleting for a filepath.
       #
       DEFAULT_PROC = proc { |input|
-        input = input.gsub("~/", "#{ENV["HOME"]}/")
-
         if input == "~"
           ["~/"]
         elsif input == "."
@@ -24,33 +22,16 @@ module Hedgehog
         elsif input.empty?
           ["./", "~/", "/"]
         else
-          components = input.split("/")
+          results = Readline::FILENAME_COMPLETION_PROC.call(input) || []
+          results.map! do |result|
+            directory = File.directory?(result.gsub(/^~/, "#{ENV["HOME"]}"))
 
-          if input.end_with?("/")
-            components_without_last = components
-            path_without_last = input
-            grep = nil
-          else
-            components_without_last = components[0...-1]
-            path_without_last = components_without_last.join("/")
-            grep = /^#{Regexp.escape(components.last)}/
-          end
-
-          path = path_without_last.shellsplit.first || ""
-
-          if File.directory?(path) || File.file?(path)
-            results = Dir.entries(path)
-              .grep(/#{grep}/)
-              .select { |f| !f.match /^(.|..)$/ }
-              .sort
-              .map { |f| File.directory?(File.join(components_without_last, f)) ? "#{f}/" : f }
-              .map { |f| f.gsub(" ", "\\ ") }
-              .sort_by { |f| f.end_with?("/") ? "a" : "b" }
-
-            results
-          else
-            []
-          end
+            if directory && !result.end_with?("/")
+              "#{result}/"
+            else
+              result
+            end
+          end.sort_by { |f| f.end_with?("/") ? "a" : "b" }
         end
       }
 
@@ -224,14 +205,7 @@ module Hedgehog
       def enter
         clear_all
 
-        components = current_word.split("/")
-        if current_word.end_with?("/")
-          components_without_last = components
-        else
-          components_without_last = components[0...-1]
-        end
-        components_without_last << suggestions[selected_row]
-        components_without_last.join("/")
+        suggestions[selected_row]
       end
 
       def suggestions

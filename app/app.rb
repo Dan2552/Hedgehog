@@ -4,6 +4,7 @@ begin
   require 'active_support/all'
   require_relative "hedgehog/dsl"
   require 'shellwords'
+  require 'readline'
 
   include Hedgehog::DSL
 

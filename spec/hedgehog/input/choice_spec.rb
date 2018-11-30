@@ -1,4 +1,10 @@
 describe Hedgehog::Input::Choice do
+  let(:stub_home_directory_results) do
+    ["Banana", "Doc1.txt", "Documents", "Downloads"].map do |str|
+      "~/#{str}"
+    end
+  end
+
   def stub_home_directory
     allow(Dir).to receive(:entries) do |with|
       if with == ENV['HOME'] || with == ENV['HOME'] + "/"
@@ -27,6 +33,16 @@ describe Hedgehog::Input::Choice do
       allow(File)
         .to receive(:file?)
         .with("#{ENV['HOME']}/#{f}")
+        .and_return(false)
+
+      allow(File)
+        .to receive(:directory?)
+        .with("#{ENV['HOME']}/#{f}/")
+        .and_return(true)
+
+      allow(File)
+        .to receive(:file?)
+        .with("#{ENV['HOME']}/#{f}/")
         .and_return(false)
     end
 
@@ -76,6 +92,13 @@ describe Hedgehog::Input::Choice do
 
       before { stub_home_directory }
 
+      before do
+        allow(Readline::FILENAME_COMPLETION_PROC)
+          .to receive(:call)
+          .with(current_word)
+          .and_return(stub_home_directory_results.select { |x| x.start_with?(current_word) })
+      end
+
       context "when enter is pressed" do
         before do
           stub_characters(:enter)
@@ -91,6 +114,13 @@ describe Hedgehog::Input::Choice do
       let(:current_word) { "~/D" }
 
       before { stub_home_directory }
+
+      before do
+        allow(Readline::FILENAME_COMPLETION_PROC)
+          .to receive(:call)
+          .with(current_word)
+          .and_return(stub_home_directory_results.select { |x| x.start_with?(current_word) })
+      end
 
       context "when enter is pressed" do
         before do

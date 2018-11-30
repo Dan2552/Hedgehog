@@ -165,7 +165,7 @@ RSpec.describe Hedgehog::Input::LineEditor do
 
           expect(instance)
             .to receive(:read_choice)
-            .with("~/wedding\\ upload", 16)
+            .with("~/wedding\\ upload", 0)
 
           subject
         end
@@ -186,7 +186,7 @@ RSpec.describe Hedgehog::Input::LineEditor do
 
           expect(instance)
             .to receive(:read_choice)
-            .with("~/D", 5)
+            .with("~/D", 2)
 
           subject
         end
@@ -207,7 +207,7 @@ RSpec.describe Hedgehog::Input::LineEditor do
 
           expect(instance)
             .to receive(:read_choice)
-            .with("", 3)
+            .with("", 2)
 
           subject
         end

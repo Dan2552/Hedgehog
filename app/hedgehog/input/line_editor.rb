@@ -189,9 +189,11 @@ module Hedgehog
 
         current_word, range = current_word_and_range
 
+        indentation = [size(prompt) + range.first - 1, 0].max
+
         result = Hedgehog::Input::Choice
           .new(handle_teletype: false, completion_proc: complete_proc)
-          .read_choice(current_word, size(prompt) + range.last)
+          .read_choice(current_word, indentation)
 
         if result
           line[range] = result
