@@ -17,8 +17,7 @@ module Hedgehog
       def readline(prompt)
         Hedgehog::Teletype.silence! if handle_teletype
         @prompt = prompt
-        print("\r")
-        print(prompt)
+        redraw
         loop do
           result = handle_character
           return nil if result == :cancel
@@ -92,6 +91,7 @@ module Hedgehog
         # Wipe
         #
         print "\e[2K"
+        print "\e[0J"
         puts "\e[0F"
 
         # Draw
