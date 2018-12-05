@@ -33,7 +33,6 @@ module Hedgehog
         @line = nil
         @suffix = nil
         @cursor_position = nil
-        @previous_draw = nil
       end
 
       private
@@ -83,8 +82,6 @@ module Hedgehog
       # new letter (d) should replace bc with dbc
       #
       def redraw(without_suffix: false)
-        previous_draw = @previous_draw || 0
-
         # line was "hello orld", w typed at 6, cursor incremented by 1
         # line is now "hello world"
 
@@ -94,12 +91,8 @@ module Hedgehog
 
         # Wipe
         #
-        print("\r")
-        print(" " * previous_draw)
-
-        # Return to beginning
-        #
-        print("\r")
+        print "\e[2K"
+        puts "\e[0F"
 
         # Draw
         #
@@ -119,8 +112,6 @@ module Hedgehog
         print("\e[D" * [(line_size - before), 0].max)
         # hello world
         #        ^ (<-4 to 7)
-
-        @previous_draw = size(prompt) + size(line) + size(suffix)
       end
 
       # Make an action based on the input character
@@ -150,16 +141,16 @@ module Hedgehog
         redraw
       end
 
-      def go_left(by: 1)
-        return if cursor_position - by < 0
-        self.cursor_position = cursor_position - by
-        by.times { print(char.to_s) }
+      def go_left
+        return if cursor_position - 1 < 0
+        self.cursor_position = cursor_position - 1
+        redraw
       end
 
       def go_right
         return if cursor_position > line.length - 1
         self.cursor_position = cursor_position + 1
-        print(char.to_s)
+        redraw
       end
 
       def backspace
@@ -170,6 +161,7 @@ module Hedgehog
 
       def interrupt
         return unless line.present?
+        self.cursor_position = line.length
         redraw(without_suffix: true)
         print(str_with_color("^C", color: 0, bg_color: 15))
         raise Interrupt
