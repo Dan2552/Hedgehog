@@ -1,7 +1,11 @@
 module Hedgehog
   module Terminal
     def columns
-      `tput cols`.chomp.to_i
+      @columns_last_update ||= 1.year.ago
+      return @columns if Time.now < (@columns_last_update + 5.seconds)
+
+      @columns_last_update = Time.now
+      @columns = `tput cols`.chomp.to_i
     end
     module_function :columns
 
