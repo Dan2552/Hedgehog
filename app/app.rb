@@ -33,8 +33,6 @@ begin
     require f
   end
 
-  function("cd").call("~")
-
   Bundler.send(:with_env, Hedgehog::State.shared_instance.env) do
     # Load ~/.hedgehog
     #
