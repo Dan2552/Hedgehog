@@ -25,6 +25,7 @@ begin
       Hedgehog::Execution::Binary.new,
       Hedgehog::Execution::Ruby.new,
     ]
+    config.input_history = Hedgehog::Input::History.new
   end
 
   # Load builtins

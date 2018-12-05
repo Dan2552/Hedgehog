@@ -30,6 +30,7 @@ describe Hedgehog::Execution::Runner do
             Hedgehog::Execution::Binary.new,
             Hedgehog::Execution::Ruby.new,
           ]
+          config.input_history = Hedgehog::Input::History.new
         end
 
         Hedgehog::Settings.shared_instance.execution_order.each do |adapter|

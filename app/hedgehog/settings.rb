@@ -11,6 +11,7 @@ module Hedgehog
     attr_accessor :binary_in_path_finder
     attr_accessor :disabled_built_ins
     attr_accessor :execution_order
+    attr_accessor :input_history
 
     # Disables user input/interaction.
     #

@@ -37,7 +37,7 @@ module Hedgehog
       end
 
       def runner
-        @runner ||= Hedgehog::Execution::Runner.new
+        @runner ||= Hedgehog::Execution::Runner.new(history: true)
       end
     end
   end

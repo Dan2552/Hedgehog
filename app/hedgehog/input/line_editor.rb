@@ -135,6 +135,8 @@ module Hedgehog
 
         return go_left if char.is?(:left)
         return go_right if char.is?(:right)
+        return up_through_history if char.is?(:up)
+        return down_through_history if char.is?(:down)
         return :cancel if char.is?(:ctrl_d)
         return interrupt if char.is?(:ctrl_c)
         return backspace if char.is?(:backspace)
@@ -231,6 +233,20 @@ module Hedgehog
           iterated_chars = iterated_chars + 1
         end
         return ["", cursor_position..cursor_position]
+      end
+
+      # TODO: spec
+      def up_through_history
+        self.line = Hedgehog::Settings.shared_instance.input_history.up
+        self.cursor_position = size(line)
+        redraw
+      end
+
+      # TODO: spec
+      def down_through_history
+        self.line = Hedgehog::Settings.shared_instance.input_history.down
+        self.cursor_position = size(line)
+        redraw
       end
     end
   end
