@@ -201,6 +201,8 @@ module Hedgehog
         end
 
         redraw
+      rescue Interrupt
+        interrupt
       end
 
       # The word that the cursor is on and the character it starts on.
