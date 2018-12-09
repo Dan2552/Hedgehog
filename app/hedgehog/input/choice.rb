@@ -35,7 +35,8 @@ module Hedgehog
         end
       }
 
-      def initialize(handle_teletype: true, completion_proc: nil)
+      def initialize(editor: nil, handle_teletype: true, completion_proc: nil)
+        @editor = editor
         @handle_teletype = handle_teletype
         @results_to_show = 0
         @selected_row = 0
@@ -55,7 +56,7 @@ module Hedgehog
       def read_choice(current_word, spacing)
         self.current_word = current_word
         self.spacing = spacing
-        self.results_to_show = [suggestions.count, 5].min
+        self.results_to_show = [suggestions.count, 8].min
 
         return nil if results_to_show == 0
 
@@ -73,6 +74,8 @@ module Hedgehog
       end
 
       private
+
+      attr_reader :editor
 
       # Whether teletype silencing should be managed by this class. This should
       # only be disabled if called from another input source (e.g. Editor).
@@ -146,10 +149,8 @@ module Hedgehog
       # previous line.
       #
       def clear_line
-        print("\r")
-        print(" " * Hedgehog::Terminal.columns)
-        print("\r")
-        print("\e[A")
+        print "\e[2K" # clear line
+        puts "\e[2F" # move to the beginning of 1 line up
       end
 
       # Draws a single line for the choice selection.
@@ -160,9 +161,16 @@ module Hedgehog
 
         extra_padding = " " * (width_of_suggestions - result.length)
         text = " #{result}#{extra_padding} "
+        target_spacing = spacing + extra_spacing
 
-        print("\n\r")
-        print(" " * (spacing + extra_spacing))
+        diff = Hedgehog::Terminal.columns - (target_spacing + text.length)
+
+        actual_spacing = target_spacing
+        actual_spacing = actual_spacing + diff if diff < 0
+
+        print("\n")
+        puts "\e[0F"
+        print(" " * [actual_spacing, 0].max)
         print(str_with_color(text, color: color, bg_color: bg_color))
       end
 
@@ -187,6 +195,11 @@ module Hedgehog
         return go_up if char.is?(:up)
         return go_down if char.is?(:down)
         return enter if char.is?(:enter)
+
+        if editor
+          editor.auto_complete_input = char
+          cancel
+        end
       end
 
       def interupt

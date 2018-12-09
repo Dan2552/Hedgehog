@@ -6,6 +6,11 @@ module Hedgehog
     # - Prints autosuggestions
     #
     class LineEditor
+      # Choice instance sets this when a character that the editor should handle
+      # is typed.
+      #
+      attr_accessor :auto_complete_input
+
       def initialize(handle_teletype: true)
         @handle_teletype = handle_teletype
       end
@@ -125,8 +130,9 @@ module Hedgehog
       # - Delete a character
       #
       # - returns: true if \n, otherwise false
-      def handle_character
-        self.char = characters.get_next
+      def handle_character(overriden_char = nil)
+        return handle_character_for_auto_complete if auto_complete_input
+        self.char = overriden_char || characters.get_next
 
         return go_left if char.is?(:left)
         return go_right if char.is?(:right)
@@ -143,6 +149,14 @@ module Hedgehog
         line.insert(cursor_position, char)
         self.cursor_position = cursor_position + 1
         redraw
+      end
+
+      def handle_character_for_auto_complete
+        char = auto_complete_input
+        self.auto_complete_input = nil
+        handle_character(char) unless char.is?(:tab)
+        redraw
+        auto_complete
       end
 
       def go_left
@@ -190,7 +204,7 @@ module Hedgehog
         indentation = [size(prompt) + range.first - 1, 0].max
 
         result = Hedgehog::Input::Choice
-          .new(handle_teletype: false, completion_proc: complete_proc)
+          .new(editor: self, handle_teletype: false, completion_proc: complete_proc)
           .read_choice(current_word, indentation)
 
         if result
