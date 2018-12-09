@@ -6,7 +6,7 @@ unless Hedgehog::Settings
 
   function "cd" do |args|
     begin
-      Dir.chdir(args.to_s.gsub("~", "#{ENV['HOME']}"))
+      FileUtils.cd(args.to_s.shellsplit.first.gsub("~", "#{ENV['HOME']}"))
     rescue Exception => e
       puts e.to_s.gsub(" @ dir_s_chdir", "")
     end

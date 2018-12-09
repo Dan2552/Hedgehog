@@ -1,6 +1,10 @@
 module Hedgehog
   module Execution
     class Runner
+      def initialize(history: false)
+        @history = history
+      end
+
       def run(command_string)
         @command = @command || Hedgehog::Command.new
         @command << command_string
@@ -15,12 +19,21 @@ module Hedgehog
 
       private
 
+      attr_reader :history
+
       def execute_command
-        Hedgehog::Settings.shared_instance.execution_order.each do |adapter|
+        # TODO: spec
+        settings.input_history << @command.original if history
+
+        settings.execution_order.each do |adapter|
           next unless adapter.validate(@command)
           adapter.run(@command)
           return
         end
+      end
+
+      def settings
+        Hedgehog::Settings.shared_instance
       end
     end
   end

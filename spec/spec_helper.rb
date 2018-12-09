@@ -1,7 +1,14 @@
 require 'bundler/setup'
 Bundler.require(:default, :test)
+require "logger"
+require "active_support/all"
+require 'io/console'
 
 Dir[Bundler.root.join("app", "hedgehog", "**", "*")].each do |f|
+  require f if File.file?(f)
+end
+
+Dir[Bundler.root.join("spec", "support", "**", "*")].each do |f|
   require f if File.file?(f)
 end
 
