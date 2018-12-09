@@ -211,7 +211,7 @@ module Hedgehog
           line[range] = result
           self.cursor_position = range.first + result.length
         else
-          self.cursor_position = range.last + 1
+          self.cursor_position = size(line)
         end
 
         redraw
