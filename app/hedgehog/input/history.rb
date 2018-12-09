@@ -25,6 +25,7 @@ module Hedgehog
       end
 
       def <<(new_element)
+        return if new_element.strip.length < 1
         return if store.last == new_element
         store << new_element
         store.delete_at(0) if store.count > limit

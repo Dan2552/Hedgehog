@@ -40,6 +40,21 @@ describe Hedgehog::Input::History do
       end
     end
 
+    context "when there is an empty input" do
+      before do
+        described_instance << "one"
+        described_instance << ""
+        described_instance << "two"
+        described_instance << "three"
+      end
+
+      it "doesn't record the empty input" do
+        expect(described_instance.up).to eq("three")
+        expect(described_instance.up).to eq("two")
+        expect(described_instance.up).to eq("one")
+      end
+    end
+
     context "when there are more elements than the limit" do
       let(:described_instance) { described_class.new(limit: 2) }
 
