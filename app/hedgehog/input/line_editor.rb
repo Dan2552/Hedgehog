@@ -88,11 +88,17 @@ module Hedgehog
         # hello orld
         #        ^ (at 7)
 
+        lines = ((size(prompt) + size(line)) / Hedgehog::Terminal.columns.to_f).ceil
+
         # Wipe
         #
-        print "\e[2K"
-        print "\e[0J"
-        puts "\e[0F"
+        lines.times do
+          print "\e[2K" # clear line
+          puts "\e[0F" # move to the beginning of 0 lines up
+          print("\e[D") # left button
+        end
+        print "\e[2K" # clear line
+        puts "\e[0F" # move to the beginning of 0 lines up
 
         # Draw
         #
