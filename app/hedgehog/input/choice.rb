@@ -251,7 +251,7 @@ module Hedgehog
 
             @extra_spacing ||= components[0..-2].join("").length
 
-            components.last
+            components.last[0..Hedgehog::Terminal.columns - 3]
           end
         end
       end
