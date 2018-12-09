@@ -5,6 +5,7 @@ begin
   require_relative "hedgehog/dsl"
   require 'shellwords'
   require 'readline'
+  require 'io/console'
 
   include Hedgehog::DSL
 
