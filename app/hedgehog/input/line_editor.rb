@@ -92,13 +92,11 @@ module Hedgehog
 
         # Wipe
         #
-        lines.times do
+        (lines + 1).times do
           print "\e[2K" # clear line
           puts "\e[0F" # move to the beginning of 0 lines up
           print("\e[D") # left button
         end
-        print "\e[2K" # clear line
-        puts "\e[0F" # move to the beginning of 0 lines up
 
         # Draw
         #
