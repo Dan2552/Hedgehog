@@ -91,6 +91,10 @@ module Hedgehog
       #
       attr_accessor :spacing
 
+      def extra_spacing
+        @extra_spacing || 0
+      end
+
       # The current characters of the word that is being completed.
       #
       attr_accessor :current_word
@@ -112,7 +116,7 @@ module Hedgehog
       #
       def width_of_suggestions
         longest = 1
-        suggestions[0...results_to_show].each do |result|
+        suggestions_to_render[0...results_to_show].each do |result|
           longest = [longest, result.length].max
         end
         longest
@@ -123,7 +127,7 @@ module Hedgehog
       def draw
         clear_all
 
-        suggestions[0...results_to_show].each.with_index do |result, index|
+        suggestions_to_render[0...results_to_show].each.with_index do |result, index|
           render_option(result, index)
         end
 
@@ -158,7 +162,7 @@ module Hedgehog
         text = " #{result}#{extra_padding} "
 
         print("\n\r")
-        print(" " * spacing)
+        print(" " * (spacing + extra_spacing))
         print(str_with_color(text, color: color, bg_color: bg_color))
       end
 
@@ -209,7 +213,19 @@ module Hedgehog
       end
 
       def suggestions
-        completion_proc.call(current_word) || []
+        @suggestions ||= (completion_proc.call(current_word) || []).uniq
+      end
+
+      def suggestions_to_render
+        @suggestions_to_render ||= begin
+          suggestions.map do |suggestion|
+            components = suggestion.split(/(?<=[\/])/)
+
+            @extra_spacing ||= components[0..-2].join("").length
+
+            components.last
+          end
+        end
       end
 
       def cancel
