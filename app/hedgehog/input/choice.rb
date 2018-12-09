@@ -195,6 +195,8 @@ module Hedgehog
         return go_up if char.is?(:up)
         return go_down if char.is?(:down)
         return enter if char.is?(:enter)
+        return right if char.is?(:right)
+        return left if char.is?(:left)
 
         if editor
           editor.auto_complete_input = char
@@ -205,6 +207,19 @@ module Hedgehog
       def interupt
         clear_all
         raise Interrupt
+      end
+
+      def left
+        return unless editor
+        editor.auto_complete_input = Hedgehog::Input::Characters::Character.new("\t")
+        clear_all
+        suggestions[selected_row].split(/(?<=[\/])/)[0..-3].join("")
+      end
+
+      def right
+        return unless editor
+        editor.auto_complete_input = Hedgehog::Input::Characters::Character.new("\t")
+        enter
       end
 
       def go_up
