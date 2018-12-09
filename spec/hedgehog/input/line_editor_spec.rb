@@ -160,7 +160,7 @@ RSpec.describe Hedgehog::Input::LineEditor do
 
           expect(Hedgehog::Input::Choice)
             .to receive(:new)
-            .with(handle_teletype: false, completion_proc: nil)
+            .with(editor: described_instance, handle_teletype: false, completion_proc: nil)
             .and_return(instance)
 
           expect(instance)
@@ -181,7 +181,7 @@ RSpec.describe Hedgehog::Input::LineEditor do
 
           expect(Hedgehog::Input::Choice)
             .to receive(:new)
-            .with(handle_teletype: false, completion_proc: nil)
+            .with(editor: described_instance, handle_teletype: false, completion_proc: nil)
             .and_return(instance)
 
           expect(instance)
@@ -202,7 +202,7 @@ RSpec.describe Hedgehog::Input::LineEditor do
 
           expect(Hedgehog::Input::Choice)
             .to receive(:new)
-            .with(handle_teletype: false, completion_proc: nil)
+            .with(editor: described_instance, handle_teletype: false, completion_proc: nil)
             .and_return(instance)
 
           expect(instance)
