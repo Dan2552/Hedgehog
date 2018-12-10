@@ -136,6 +136,8 @@ module Hedgehog
 
         return go_left if char.is?(:left)
         return go_right if char.is?(:right)
+        return go_left_by_word if char.is?(:option_left)
+        return go_right_by_word if char.is?(:option_right)
         return up_through_history if char.is?(:up)
         return down_through_history if char.is?(:down)
         return :cancel if char.is?(:ctrl_d)
@@ -169,6 +171,25 @@ module Hedgehog
       def go_right
         return if cursor_position > line.length - 1
         self.cursor_position = cursor_position + 1
+        redraw
+      end
+
+      def go_left_by_word
+        if line[cursor_position - 1] == " "
+          go_left
+        end
+        current_word, range = current_word_and_range
+        self.cursor_position = range.first
+        redraw
+      end
+
+      def go_right_by_word
+        go_right if cursor_position == 0
+        go_right if line[cursor_position] == " "
+        go_right if line[cursor_position - 1] == " "
+
+        current_word, range = current_word_and_range
+        self.cursor_position = range.last + 1
         redraw
       end
 

@@ -197,6 +197,9 @@ module Hedgehog
         return enter if char.is?(:enter)
         return right if char.is?(:right)
         return left if char.is?(:left)
+        return right if char.is?(:option_right)
+        return left if char.is?(:option_left)
+
 
         if editor
           editor.auto_complete_input = char
