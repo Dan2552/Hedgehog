@@ -54,7 +54,7 @@ module Hedgehog
       # - returns: The selection's String value.
       #
       def read_choice(current_word, spacing)
-        self.current_word = current_word
+        self.current_word = current_word.delete_prefix('"').delete_suffix('"')
         self.spacing = spacing
         self.results_to_show = [suggestions.count, 8].min
 
@@ -66,7 +66,10 @@ module Hedgehog
         loop do
           result = handle_character
           return nil if result == :cancel
-          return result if result.is_a? String
+          if result.is_a? String
+            return "\"#{result}\"" if result.include?(" ")
+            return result
+          end
         end
       ensure
         Terminal.show_cursor
