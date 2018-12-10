@@ -12,7 +12,8 @@ module Hedgehog
         "\u007F" => :backspace,
         "\n" => :enter,
         "\r" => :enter,
-        "\t" => :tab
+        "\t" => :tab,
+        "\e[3~" => :delete
       }
     end
   end

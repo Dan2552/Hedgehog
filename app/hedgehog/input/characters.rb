@@ -44,6 +44,7 @@ module Hedgehog
           thread = Thread.new {
             characters << STDIN.getc.chr
             characters << STDIN.getc.chr
+            characters << STDIN.getc.chr if characters == ["\e", "[", "3"]
           }
           thread.join(ESCAPE_WAIT_LIMIT)
           thread.kill

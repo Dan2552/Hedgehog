@@ -141,6 +141,7 @@ module Hedgehog
         return :cancel if char.is?(:ctrl_d)
         return interrupt if char.is?(:ctrl_c)
         return backspace if char.is?(:backspace)
+        return delete if char.is?(:delete)
         return :finish if char.is?(:enter)
         return auto_complete if char.is?(:tab)
 
@@ -174,6 +175,12 @@ module Hedgehog
       def backspace
         return if cursor_position == 0
         go_left
+        line[cursor_position] = ''
+        redraw
+      end
+
+      def delete
+        return if cursor_position == line.length - 1
         line[cursor_position] = ''
         redraw
       end
