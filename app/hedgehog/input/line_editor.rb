@@ -172,6 +172,7 @@ module Hedgehog
       end
 
       def backspace
+        return if cursor_position == 0
         go_left
         line[cursor_position] = ''
         redraw
