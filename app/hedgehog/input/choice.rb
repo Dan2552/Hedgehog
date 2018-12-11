@@ -153,7 +153,7 @@ module Hedgehog
       #
       def clear_line
         print "\e[2K" # clear line
-        puts "\e[2F" # move to the beginning of 1 line up
+        print "\e[1F" # move to the beginning of 1 line up
       end
 
       # Draws a single line for the choice selection.
@@ -172,7 +172,7 @@ module Hedgehog
         actual_spacing = actual_spacing + diff if diff < 0
 
         print("\n")
-        puts "\e[0F"
+        print "\e[0G"
         print(" " * [actual_spacing, 0].max)
         print(str_with_color(text, color: color, bg_color: bg_color))
       end

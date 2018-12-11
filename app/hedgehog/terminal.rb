@@ -5,6 +5,11 @@ module Hedgehog
     end
     module_function :columns
 
+    def rows
+      IO.console.winsize[0]
+    end
+    module_function :rows
+
     def hide_cursor
       system("tput civis")
     end

@@ -93,15 +93,13 @@ module Hedgehog
         # hello orld
         #        ^ (at 7)
 
-        lines = ((size(prompt) + size(line)) / Hedgehog::Terminal.columns.to_f).ceil
+        size = Terminal.columns * Terminal.rows
 
         # Wipe
         #
-        (lines + 1).times do
-          print "\e[2K" # clear line
-          puts "\e[0F" # move to the beginning of 0 lines up
-          print("\e[D") # left button
-        end
+        print "\e[#{size}D" # move left as far possible
+        print "\e[0J" # clear screen from cursor
+        print "\e[0G" # move to start of line - prevents jumping when line wrapping
 
         # Draw
         #
