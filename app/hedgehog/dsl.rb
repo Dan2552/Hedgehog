@@ -1,7 +1,7 @@
 module Hedgehog
   module DSL
     def run(command_string)
-      Hedgehog::Execution::Runner.new.run(command_string)
+      _runner.run(command_string)
     end
 
     def prompt(&blk)
@@ -23,6 +23,12 @@ module Hedgehog
       else
         state.aliases[name]
       end
+    end
+
+    private
+
+    def _runner
+      @_runner ||= Hedgehog::Execution::Runner.new
     end
   end
 end
