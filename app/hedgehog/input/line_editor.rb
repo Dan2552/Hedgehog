@@ -1,7 +1,7 @@
 module Hedgehog
   module Input
     # - Prints prompt
-    # - Prints line instance
+    # - Prints line
     # - Manipulates line with user input
     # - Prints autosuggestions
     #
@@ -79,13 +79,13 @@ module Hedgehog
         @cursor_position ||= 0
       end
 
-      attr_accessor :char
-
       # abc
       #  ^
       # new letter (d) should replace bc with dbc
       #
       def redraw(without_suffix: false)
+        @original_cursor_position ||= Terminal.cursor_position.freeze
+
         # line was "hello orld", w typed at 6, cursor incremented by 1
         # line is now "hello world"
 
@@ -93,30 +93,78 @@ module Hedgehog
         # hello orld
         #        ^ (at 7)
 
-        size = Terminal.columns * Terminal.rows
-
         # Wipe
         #
-        print "\e[#{size}D" # move left as far possible
+        print "\e[#{@original_cursor_position[1]};#{@original_cursor_position[0]}H"
         print "\e[0J" # clear screen from cursor
-        print "\e[0G" # move to start of line - prevents jumping when line wrapping
 
         # Draw
         #
         print(prompt)
-        print(line)
+        prompt_length = StringExtensions.without_color(prompt).length
+
+        line.each_char.with_index do |char|
+          if char == "\n"
+            print "\n"
+
+            # move to start of line
+            print "\e[0G"
+
+            # print padding that matches the prompt
+            # print " " * prompt_length
+            print "\e[#{prompt_length}C"
+          else
+            print char
+          end
+        end
+
         # hello world
         #            ^ (at 11 == line.length)
 
-        line_size = size(line)
-        unless without_suffix
-          print(colored_suffix)
-          line_size = line_size + size(suffix)
+        print(colored_suffix) unless without_suffix
+
+        reposition_cursor
+      end
+
+      def reposition_cursor
+        prompt_length = StringExtensions.without_color(prompt).length
+
+        # Iterate a second time with color stripped to work out cursor row and
+        # col
+        cursor_line = 0
+        cursor_position_in_line = 0
+        long_line = false
+        StringExtensions.without_color(line).each_char.with_index do |char, position|
+          if char == "\n"
+            cursor_line = cursor_line + 1
+            cursor_position_in_line = 0
+            long_line = false
+            break if position == cursor_position
+            next
+          end
+
+          space = Terminal.columns
+          space = space - prompt_length unless long_line
+          if cursor_position_in_line == space - 1
+            cursor_line = cursor_line + 1
+            cursor_position_in_line = 0
+            long_line = true
+            break if position == cursor_position
+            next
+          end
+
+          break if position == cursor_position
+
+          cursor_position_in_line = cursor_position_in_line + 1
         end
 
         # Put the cursor back to where it was
         #
-        print("\e[D" * [(line_size - before), 0].max)
+        print "\e[#{@original_cursor_position[1]};#{@original_cursor_position[0]}H"
+        print "\e[#{cursor_line}B" if cursor_line > 0
+        print "\e[#{prompt_length}C" unless long_line
+        print "\e[#{cursor_position_in_line}C" if cursor_position_in_line > 0
+
         # hello world
         #        ^ (<-4 to 7)
       end
@@ -130,19 +178,19 @@ module Hedgehog
       # - returns: true if \n, otherwise false
       def handle_character(overriden_char = nil)
         return handle_character_for_auto_complete if auto_complete_input
-        self.char = overriden_char || characters.get_next
+        char = overriden_char || characters.get_next
 
         return go_left if char.is?(:left)
         return go_right if char.is?(:right)
         return go_left_by_word if char.is?(:option_left)
         return go_right_by_word if char.is?(:option_right)
-        return up_through_history if char.is?(:up)
-        return down_through_history if char.is?(:down)
+        return up if char.is?(:up)
+        return down if char.is?(:down)
         return :cancel if char.is?(:ctrl_d)
         return interrupt if char.is?(:ctrl_c)
         return backspace if char.is?(:backspace)
         return delete if char.is?(:delete)
-        return :finish if char.is?(:enter)
+        return enter if char.is?(:enter)
         return auto_complete if char.is?(:tab)
 
         return if char.unknown? || char.known_special?
@@ -160,16 +208,23 @@ module Hedgehog
         auto_complete
       end
 
+      def enter
+        return :finish unless Hedgehog::Command.new(line).incomplete?
+        line.insert(cursor_position, "\n")
+        self.cursor_position = cursor_position + 1
+        redraw
+      end
+
       def go_left
         return if cursor_position - 1 < 0
         self.cursor_position = cursor_position - 1
-        redraw
+        reposition_cursor
       end
 
       def go_right
         return if cursor_position > line.length - 1
         self.cursor_position = cursor_position + 1
-        redraw
+        reposition_cursor
       end
 
       def go_left_by_word
@@ -178,7 +233,7 @@ module Hedgehog
         end
         current_word, range = current_word_and_range
         self.cursor_position = range.first
-        redraw
+        reposition_cursor
       end
 
       def go_right_by_word
@@ -188,7 +243,7 @@ module Hedgehog
 
         current_word, range = current_word_and_range
         self.cursor_position = range.last + 1
-        redraw
+        reposition_cursor
       end
 
       def backspace
@@ -272,6 +327,14 @@ module Hedgehog
           iterated_chars = iterated_chars + 1
         end
         return ["", cursor_position..cursor_position]
+      end
+
+      def up
+        return up_through_history if cursor_position == line.length
+      end
+
+      def down
+        return down_through_history if cursor_position == line.length
       end
 
       # TODO: spec

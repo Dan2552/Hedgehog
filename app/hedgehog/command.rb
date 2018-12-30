@@ -34,6 +34,11 @@ module Hedgehog
       end
     end
 
+    def initialize(command)
+      @original = command
+      work_it_out
+    end
+
     def <<(command)
       if @original
         @original += "\n" + command
@@ -130,7 +135,7 @@ module Hedgehog
         '(' => ')',
         '`' => '`',
         "'" => "'",
-        '"' => '"',
+        '"' => '"'
       }
 
       expectations = []
