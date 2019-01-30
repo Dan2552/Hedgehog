@@ -1,12 +1,12 @@
 module Hedgehog
   module Terminal
     def columns
-      IO.console.winsize[1]
+      ENV['COLUMNS']&.to_i || IO.console.winsize[1] || 80
     end
     module_function :columns
 
     def rows
-      IO.console.winsize[0]
+      ENV['LINES']&.to_i || IO.console.winsize[0] || 24
     end
     module_function :rows
 
