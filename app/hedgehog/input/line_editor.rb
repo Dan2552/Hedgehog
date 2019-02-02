@@ -27,9 +27,11 @@ module Hedgehog
           result = handle_character
           return nil if result == :cancel
           if result == :finish
+            line.cursor_index = line.visible_length
+            redraw
             Hedgehog::Teletype.restore!
             puts ""
-            return line
+            return line.text
           end
         end
       ensure
@@ -37,6 +39,7 @@ module Hedgehog
         @line = nil
         @suffix = nil
         @cursor_position = nil
+        @last_cursor_rows = nil
       end
 
       private
@@ -54,119 +57,51 @@ module Hedgehog
       end
 
       def colored_suffix
-        str_with_color(suffix, color: 240)
-      end
-
-      def stripped_of_color(str)
-        str.gsub(/\x1B\[([0-9]{1,3}((;[0-9]{1,3})*)?)?[m|K]/, "")
+        Hedgehog::StringExtensions.with_color(suffix, color: 240)
       end
 
       def size(str)
-        stripped_of_color(str).length
+        Hedgehog::StringExtensions.without_color(str).length
       end
 
       def characters
         @characters ||= Hedgehog::Input::Characters.new
       end
 
-      attr_accessor :line
       def line
-        @line ||= ""
+        @line ||= TerminalLine.new(
+          cols: Terminal.columns,
+          rows: Terminal.rows,
+          text: "",
+          cursor_index: 0,
+          prefix: prompt
+        )
       end
 
-      attr_accessor :cursor_position
-      def cursor_position
-        @cursor_position ||= 0
-      end
-
-      # abc
-      #  ^
-      # new letter (d) should replace bc with dbc
-      #
       def redraw(without_suffix: false)
-        @original_cursor_position ||= Terminal.cursor_position.freeze
+        Terminal.hide_cursor
 
-        # line was "hello orld", w typed at 6, cursor incremented by 1
-        # line is now "hello world"
+        Terminal.move_up(@last_cursor_rows || 0)
+        Terminal.move_to_start_of_line # prevents jumping when line wrapping
+        Terminal.clear_screen_from_cursor
 
-        before = cursor_position
-        # hello orld
-        #        ^ (at 7)
-
-        # Wipe
-        #
-        print "\e[#{@original_cursor_position[1]};#{@original_cursor_position[0]}H"
-        print "\e[0J" # clear screen from cursor
-
-        # Draw
-        #
         print(prompt)
         prompt_length = StringExtensions.without_color(prompt).length
 
-        line.each_char.with_index do |char|
-          if char == "\n"
-            print "\n"
-
-            # move to start of line
-            print "\e[0G"
-
-            # print padding that matches the prompt
-            # print " " * prompt_length
-            print "\e[#{prompt_length}C"
-          else
-            print char
-          end
-        end
-
-        # hello world
-        #            ^ (at 11 == line.length)
+        print(line.text.gsub("\n", "\n\e[0G"))
 
         print(colored_suffix) unless without_suffix
 
-        reposition_cursor
-      end
+        Terminal.move_to_start_of_line
+        size = Terminal.columns * Terminal.rows
 
-      def reposition_cursor
-        prompt_length = StringExtensions.without_color(prompt).length
+        Terminal.move_up(line.max_cursor_rows)
+        Terminal.move_down(line.cursor_rows)
+        Terminal.move_right(line.cursor_cols)
 
-        # Iterate a second time with color stripped to work out cursor row and
-        # col
-        cursor_line = 0
-        cursor_position_in_line = 0
-        long_line = false
-        StringExtensions.without_color(line).each_char.with_index do |char, position|
-          if char == "\n"
-            cursor_line = cursor_line + 1
-            cursor_position_in_line = 0
-            long_line = false
-            break if position == cursor_position
-            next
-          end
+        Terminal.show_cursor
 
-          space = Terminal.columns
-          space = space - prompt_length unless long_line
-          if cursor_position_in_line == space - 1
-            cursor_line = cursor_line + 1
-            cursor_position_in_line = 0
-            long_line = true
-            break if position == cursor_position
-            next
-          end
-
-          break if position == cursor_position
-
-          cursor_position_in_line = cursor_position_in_line + 1
-        end
-
-        # Put the cursor back to where it was
-        #
-        print "\e[#{@original_cursor_position[1]};#{@original_cursor_position[0]}H"
-        print "\e[#{cursor_line}B" if cursor_line > 0
-        print "\e[#{prompt_length}C" unless long_line
-        print "\e[#{cursor_position_in_line}C" if cursor_position_in_line > 0
-
-        # hello world
-        #        ^ (<-4 to 7)
+        @last_cursor_rows = line.cursor_rows
       end
 
       # Make an action based on the input character
@@ -195,8 +130,8 @@ module Hedgehog
 
         return if char.unknown? || char.known_special?
 
-        line.insert(cursor_position, char)
-        self.cursor_position = cursor_position + 1
+        line.insert(line.cursor_index, char)
+        line.cursor_index = line.cursor_index + 1
         redraw
       end
 
@@ -209,73 +144,67 @@ module Hedgehog
       end
 
       def enter
-        return :finish unless Hedgehog::Command.new(line).incomplete?
-        line.insert(cursor_position, "\n")
-        self.cursor_position = cursor_position + 1
+        return :finish unless Hedgehog::Command.new(line.text).incomplete?
+        line.insert(line.cursor_index, "\n")
+        line.cursor_index = line.cursor_index + 1
         redraw
       end
 
       def go_left
-        return if cursor_position - 1 < 0
-        self.cursor_position = cursor_position - 1
-        reposition_cursor
-      end
-
-      def go_right
-        return if cursor_position > line.length - 1
-        self.cursor_position = cursor_position + 1
-        reposition_cursor
-      end
-
-      def go_left_by_word
-        if line[cursor_position - 1] == " "
-          go_left
-        end
-        current_word, range = current_word_and_range
-        self.cursor_position = range.first
-        reposition_cursor
-      end
-
-      def go_right_by_word
-        go_right if cursor_position == 0
-        go_right if line[cursor_position] == " "
-        go_right if line[cursor_position - 1] == " "
-
-        current_word, range = current_word_and_range
-        self.cursor_position = range.last + 1
-        reposition_cursor
-      end
-
-      def backspace
-        return if cursor_position == 0
-        go_left
-        line[cursor_position] = ''
+        return if line.cursor_index - 1 < 0
+        line.cursor_index = line.cursor_index - 1
         redraw
       end
 
+      def go_right
+        return if line.cursor_index > line.visible_length - 1
+        line.cursor_index = line.cursor_index + 1
+        redraw
+      end
+
+      def go_left_by_word
+        if line[line.cursor_index - 1] == " "
+          go_left
+        end
+        current_word, range = current_word_and_range
+        line.cursor_index = range.first
+        redraw
+      end
+
+      def go_right_by_word
+        go_right if line.cursor_index == 0
+        go_right if line[line.cursor_index] == " "
+        go_right if line[line.cursor_index - 1] == " "
+
+        current_word, range = current_word_and_range
+        line.cursor_index = range.last + 1
+        redraw
+      end
+
+      def backspace
+        return if line.cursor_index == 0
+
+        line[line.cursor_index - 1] = ''
+        go_left
+      end
+
       def delete
-        return if cursor_position == line.length - 1
-        line[cursor_position] = ''
+        return if line.cursor_index == line.visible_length - 1
+        line[line.cursor_index] = ''
         redraw
       end
 
       def interrupt
-        return unless line.present?
-        self.cursor_position = line.length
+        return unless line.text.present?
+
+        line.cursor_index = line.visible_length
         redraw(without_suffix: true)
-        print(str_with_color("^C", color: 0, bg_color: 15))
+        print(Hedgehog::StringExtensions.with_color("^C", color: 0, bg_color: 15))
         raise Interrupt
       end
 
-      def str_with_color(str, color: nil, bg_color: nil)
-        color = "\x1b[38;5;#{color}m" if color
-        bg_color = "\x1b[48;5;#{bg_color}m" if bg_color
-        reset = "\x1b[0m"
-        "#{color}#{bg_color}#{str}#{reset}"
-      end
-
       def auto_complete
-        complete_proc = if line.include?(" ")
+        complete_proc = if line.text.include?(" ")
                           nil
                         else
                           Hedgehog::Input::Choice::PATH_BINARY_PROC
@@ -291,9 +220,9 @@ module Hedgehog
 
         if result
           line[range] = result
-          self.cursor_position = range.first + result.length
+          line.cursor_index = range.first + result.length
         else
-          self.cursor_position = size(line)
+          line.cursor_index = size(line.text)
         end
 
         redraw
@@ -310,14 +239,14 @@ module Hedgehog
       # would return ["world", 6..10]
       #
       def current_word_and_range
-        words = line.split(Hedgehog::Command::UNESCAPED_WORD_REGEX)
+        words = line.text.split(Hedgehog::Command::UNESCAPED_WORD_REGEX)
 
         iterated_chars = 0
         this_is_the_word = false
         words.each do |word|
           word_started_on = iterated_chars
           word.each_char do |char|
-            this_is_the_word = true if iterated_chars == cursor_position - 1
+            this_is_the_word = true if iterated_chars == line.cursor_index - 1
             iterated_chars = iterated_chars + 1
           end
           word_ended_on = iterated_chars - 1
@@ -326,28 +255,30 @@ module Hedgehog
           # For the space character
           iterated_chars = iterated_chars + 1
         end
-        return ["", cursor_position..cursor_position]
+        return ["", line.cursor_index..line.cursor_index]
       end
 
+      # TODO: spec
       def up
-        return up_through_history if cursor_position == line.length
+        return up_through_history if line.cursor_index == line.visible_length
       end
 
+      # TODO: spec
       def down
-        return down_through_history if cursor_position == line.length
+        return down_through_history if line.cursor_index == line.visible_length
       end
 
       # TODO: spec
       def up_through_history
-        self.line = Hedgehog::Settings.shared_instance.input_history.up
-        self.cursor_position = size(line)
+        line.text = Hedgehog::Settings.shared_instance.input_history.up || ""
+        line.cursor_index = line.visible_length
         redraw
       end
 
       # TODO: spec
       def down_through_history
-        self.line = Hedgehog::Settings.shared_instance.input_history.down
-        self.cursor_position = size(line)
+        line.text = Hedgehog::Settings.shared_instance.input_history.down || ""
+        line.cursor_index = line.visible_length
         redraw
       end
     end

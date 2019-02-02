@@ -11,14 +11,48 @@ module Hedgehog
     module_function :rows
 
     def hide_cursor
-      system("tput civis")
+      print "\e[?25l"
     end
     module_function :hide_cursor
 
     def show_cursor
-      system("tput cnorm")
+      print "\e[?25h"
     end
     module_function :show_cursor
+
+    def clear_screen_from_cursor
+      print "\e[0J"
+    end
+    module_function :clear_screen_from_cursor
+
+    def move_to_start_of_line
+      print "\e[0G"
+    end
+    module_function :move_to_start_of_line
+
+    def move_up(rows = 1)
+      return unless rows > 0
+      print "\e[#{rows}A"
+    end
+    module_function :move_up
+
+    def move_down(rows = 1)
+      return unless rows > 0
+      print "\e[#{rows}B"
+    end
+    module_function :move_down
+
+    def move_right(columns = 1)
+      return unless columns > 0
+      print "\e[#{columns}C"
+    end
+    module_function :move_right
+
+    def move_left(columns = 1)
+      return unless columns > 0
+      print "\e[#{columns}D"
+    end
+    module_function :move_left
 
     def cursor_position
       result = ""
