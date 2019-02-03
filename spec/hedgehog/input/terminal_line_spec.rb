@@ -4,6 +4,7 @@ describe Hedgehog::Input::TerminalLine do
   let(:text) { "Hello World" }
   let(:cursor_index) { 1 }
   let(:prefix) { nil }
+  let(:suffix) { nil }
 
   let(:described_instance) do
     described_class.new(
@@ -11,7 +12,8 @@ describe Hedgehog::Input::TerminalLine do
       rows: rows,
       text: text,
       cursor_index: cursor_index,
-      prefix: prefix
+      prefix: prefix,
+      suffix: suffix
     )
   end
 
@@ -51,6 +53,14 @@ describe Hedgehog::Input::TerminalLine do
 
       it "considers the prefix" do
         expect(subject).to eq(prefix.length + cursor_index)
+      end
+    end
+
+    context "when there is a suffix" do
+      let(:suffix) { "suffix suffix" }
+
+      it "doesn't make a difference" do
+        expect(subject).to eq(cursor_index)
       end
     end
 
@@ -97,6 +107,14 @@ describe Hedgehog::Input::TerminalLine do
       end
     end
 
+    context "when there is a suffix" do
+      let(:suffix) { "suffix suffix" }
+
+      it "doesn't make a difference" do
+        expect(subject).to eq(0)
+      end
+    end
+
     context "when there are lines before the cursor" do
       let(:text) { ("a" * 80) + "b\ncc" }
       let(:cursor_index) { 84 }
@@ -122,6 +140,14 @@ describe Hedgehog::Input::TerminalLine do
       end
     end
 
+    context "when there is a suffix" do
+      let(:suffix) { "suffix suffix" }
+
+      it "considers the suffix" do
+        expect(subject).to eq(text.length + suffix.length)
+      end
+    end
+
     context "when there are multiple rows" do
       let(:text) { ("a" * 80) + "b\ncc" }
       let(:cursor_index) { 84 }
@@ -143,6 +169,15 @@ describe Hedgehog::Input::TerminalLine do
       let(:prefix) { "a" * 80 }
 
       it "considers the prefix" do
+        expect(subject).to eq(1)
+      end
+    end
+
+    context "when there is a suffix" do
+      let(:text) { "a" * 75 }
+      let(:suffix) { "suffix suffix" }
+
+      it "considers the suffix" do
         expect(subject).to eq(1)
       end
     end
@@ -374,6 +409,22 @@ describe Hedgehog::Input::TerminalLine do
 
     it "returns the length of the text" do
       expect(subject).to eq(text.length)
+    end
+
+    context "when there is a prefix" do
+      let(:prefix) { "something" }
+
+      it "doesn't count the prefix" do
+        expect(subject).to eq(text.length)
+      end
+    end
+
+    context "when there is a suffix" do
+      let(:suffix) { "something" }
+
+      it "doesn't count the suffix" do
+        expect(subject).to eq(text.length)
+      end
     end
 
     context "when including color characters" do

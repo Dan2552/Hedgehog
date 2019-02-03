@@ -15,12 +15,13 @@ module Hedgehog
       # - parameter prefix: If the line we care about has a prefix that doesn't
       #   count as part of the "line" but will still take up space
       #
-      def initialize(cols:, rows:, text:, cursor_index:, prefix:)
+      def initialize(cols:, rows:, text:, cursor_index:, prefix:, suffix:)
         @cols = cols.to_i
         @rows = rows.to_i
         @text = text.to_s.dup
         @cursor_index = cursor_index.to_i
         @prefix = prefix.to_s.dup
+        @suffix = suffix.to_s.dup
 
         calculate_cursor_position
       end
@@ -168,7 +169,8 @@ module Hedgehog
         counted_rows = 0
         counted_cols = 0
         visible_text = Hedgehog::StringExtensions.without_color(@prefix) +
-                       Hedgehog::StringExtensions.without_color(@text)
+                       Hedgehog::StringExtensions.without_color(@text) +
+                       Hedgehog::StringExtensions.without_color(@suffix)
 
         @cursor_rows = nil
         @cursor_cols = nil

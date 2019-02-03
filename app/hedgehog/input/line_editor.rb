@@ -28,7 +28,7 @@ module Hedgehog
           return nil if result == :cancel
           if result == :finish
             line.cursor_index = line.visible_length
-            redraw
+            redraw(without_suffix: true)
             Hedgehog::Teletype.restore!
             puts ""
             return line.text
@@ -74,7 +74,8 @@ module Hedgehog
           rows: Terminal.rows,
           text: "",
           cursor_index: 0,
-          prefix: prompt
+          prefix: prompt,
+          suffix: suffix
         )
       end
 
@@ -92,11 +93,19 @@ module Hedgehog
 
         print(colored_suffix) unless without_suffix
 
-        Terminal.move_to_start_of_line
-        size = Terminal.columns * Terminal.rows
+        # A little workaround because printing *exactly* the width of the
+        # terminal the would result in the cursor overlapping with the last
+        # character, which behaves differently to where we actually want the
+        # cursor. This forces the cursor over to the next character space where
+        # it should be.
+        #
+        # This fix doesn't fit in TerminalLine because we *do* want cursor_rows
+        # or max_cursor_rows to be on the next line.
+        print(" ") and Terminal.move_left and Terminal.clear_screen_from_cursor
 
         Terminal.move_up(line.max_cursor_rows)
         Terminal.move_down(line.cursor_rows)
+        Terminal.move_to_start_of_line
         Terminal.move_right(line.cursor_cols)
 
         Terminal.show_cursor
@@ -147,7 +156,7 @@ module Hedgehog
         return :finish unless Hedgehog::Command.new(line.text).incomplete?
         line.insert(line.cursor_index, "\n")
         line.cursor_index = line.cursor_index + 1
-        redraw
+        redraw(without_suffix: true)
       end
 
       def go_left
