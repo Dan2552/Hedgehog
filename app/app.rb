@@ -6,6 +6,8 @@ begin
   require 'shellwords'
   require 'readline'
   require 'io/console'
+  require 'yaml'
+  require 'fileutils'
 
   include Hedgehog::DSL
 

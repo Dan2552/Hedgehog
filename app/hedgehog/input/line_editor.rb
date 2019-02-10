@@ -32,7 +32,7 @@ module Hedgehog
             redraw(without_suffix: true)
             Hedgehog::Teletype.restore!
             puts ""
-            return line.text
+            return visible_text
           end
         end
       ensure
@@ -41,6 +41,7 @@ module Hedgehog
         @suffix = nil
         @cursor_position = nil
         @last_cursor_rows = nil
+        reset_history_state
       end
 
       private
@@ -133,12 +134,16 @@ module Hedgehog
         return handle_character_for_auto_complete if auto_complete_input
         char = overriden_char || characters.get_next
 
+        return up if char.is?(:up)
+        return down if char.is?(:down)
+
+        # Anything other than up or down should reset the history navigation.
+        reset_history_state
+
         return go_left if char.is?(:left)
         return go_right if char.is?(:right)
         return go_left_by_word if char.is?(:option_left)
         return go_right_by_word if char.is?(:option_right)
-        return up if char.is?(:up)
-        return down if char.is?(:down)
         return :cancel if char.is?(:ctrl_d)
         return interrupt if char.is?(:ctrl_c)
         return backspace if char.is?(:backspace)
@@ -162,7 +167,7 @@ module Hedgehog
       end
 
       def enter
-        return :finish unless Hedgehog::Command.new(line.text).incomplete?
+        return :finish unless Hedgehog::Command.new(visible_text).incomplete?
         line.insert(line.cursor_index, "\n")
         line.cursor_index = line.cursor_index + 1
         redraw(without_suffix: true)
@@ -278,26 +283,59 @@ module Hedgehog
 
       # TODO: spec
       def up
-        return up_through_history if line.cursor_index == line.visible_length
+        # TODO logic for navigating multiple lines and `if line.cursor_index == line.visible_length`
+        # TODO when doing anything not history navigation, history should be reset
+        return nav_through_history(:up)
       end
 
       # TODO: spec
       def down
-        return down_through_history if line.cursor_index == line.visible_length
+        # TODO logic for navigating multiple lines and `if line.cursor_index == line.visible_length`
+        # TODO when doing anything not history navigation, history should be reset
+        return nav_through_history(:down)
       end
 
       # TODO: spec
-      def up_through_history
-        line.text = Hedgehog::Settings.shared_instance.input_history.up || ""
+      def nav_through_history(direction)
+        @history_matching ||= line.text
+
+        result = if direction == :up
+                   input_history.up(matching: @history_matching)
+                 elsif direction == :down
+                   input_history.down(matching: @history_matching)
+                 end
+
+        if result == nil && direction == :down
+          line.text = @history_matching
+        elsif result == nil
+          # no-op
+        else
+          if @history_matching.present?
+            result.sub!(@history_matching,
+                        Hedgehog::StringExtensions.with_color(
+                          @history_matching,
+                          color: 0,
+                          bg_color: 15
+                        ))
+          end
+          line.text = result
+        end
+
         line.cursor_index = line.visible_length
         redraw
       end
 
-      # TODO: spec
-      def down_through_history
-        line.text = Hedgehog::Settings.shared_instance.input_history.down || ""
-        line.cursor_index = line.visible_length
-        redraw
+      def input_history
+        Hedgehog::Settings.shared_instance.input_history
+      end
+
+      def reset_history_state
+        @history_matching = nil
+        input_history.reset_index!
+      end
+
+      def visible_text
+        Hedgehog::StringExtensions.without_color(line.text)
       end
     end
   end

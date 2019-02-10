@@ -3,6 +3,8 @@ Bundler.require(:default, :test)
 require "logger"
 require "active_support/all"
 require 'io/console'
+require 'yaml'
+require 'fileutils'
 
 Dir[Bundler.root.join("app", "hedgehog", "**", "*")].each do |f|
   require f if File.file?(f)

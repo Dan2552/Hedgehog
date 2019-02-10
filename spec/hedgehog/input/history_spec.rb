@@ -1,5 +1,6 @@
 describe Hedgehog::Input::History do
-  let(:described_instance) { described_class.new }
+  let(:persistence_filepath) { nil }
+  let(:described_instance) { described_class.new(persistence_filepath: persistence_filepath) }
 
   describe "#up" do
     subject { described_instance.up }
@@ -15,10 +16,45 @@ describe Hedgehog::Input::History do
         expect(subject).to eq(nil)
       end
     end
+
+    context "when persisting" do
+      let(:persistence_filepath) { "/tmp/hedgehog.yaml" }
+
+      context "if the file doesn't exist" do
+        before do
+          expect(File)
+            .to receive(:exists?)
+            .with(persistence_filepath)
+            .and_return(false)
+        end
+
+        it "returns nil" do
+          expect(subject).to eq(nil)
+        end
+      end
+
+      context "if the file exists" do
+        before do
+          expect(File)
+            .to receive(:exists?)
+            .with(persistence_filepath)
+            .and_return(true)
+
+          expect(YAML)
+            .to receive(:load_file)
+            .with(persistence_filepath)
+            .and_return(["one", "two", "three"])
+        end
+
+        it "reads the history from the file" do
+          expect(subject).to eq("three")
+        end
+      end
+    end
   end
 
   describe "#down" do
-    subject { described_instance.up }
+    subject { described_instance.down }
 
     it "returns nil" do
       expect(subject).to eq(nil)
@@ -29,6 +65,41 @@ describe Hedgehog::Input::History do
 
       it "returns nil" do
         expect(subject).to eq(nil)
+      end
+    end
+
+    context "when persisting" do
+      let(:persistence_filepath) { "/tmp/hedgehog.yaml" }
+
+      context "if the file doesn't exist" do
+        before do
+          expect(File)
+            .to receive(:exists?)
+            .with(persistence_filepath)
+            .and_return(false)
+        end
+
+        it "returns nil" do
+          expect(subject).to eq(nil)
+        end
+      end
+
+      context "if the file exists" do
+        before do
+          expect(File)
+            .to receive(:exists?)
+            .with(persistence_filepath)
+            .and_return(true)
+
+          expect(YAML)
+            .to receive(:load_file)
+            .with(persistence_filepath)
+            .and_return(["one", "two", "three"])
+        end
+
+        it "still returns nil" do
+          expect(subject).to eq(nil)
+        end
       end
     end
   end
@@ -72,7 +143,7 @@ describe Hedgehog::Input::History do
     end
 
     context "when there are more elements than the limit" do
-      let(:described_instance) { described_class.new(limit: 2) }
+      let(:described_instance) { described_class.new(limit: 2, persistence_filepath: persistence_filepath) }
 
       before do
         described_instance << "one"
@@ -86,6 +157,71 @@ describe Hedgehog::Input::History do
         expect(described_instance.up).to eq("two")
       end
     end
+
+    context "when adding an element with whitespace" do
+      before do
+        described_instance << " hello "
+      end
+
+      it "strips the whitespace" do
+        expect(described_instance.up).to eq("hello")
+      end
+    end
+
+    context "when persisting" do
+      let(:persistence_filepath) { "/tmp/hedgehog.yaml" }
+
+      before do
+        allow(FileUtils).to receive(:mkpath)
+        allow(File).to receive(:write)
+      end
+
+      it "writes to the file" do
+        expect(FileUtils)
+          .to receive(:mkpath)
+          .with("/tmp")
+
+        expect(File)
+          .to receive(:write)
+          .with(persistence_filepath, "---\n- element\n")
+
+        subject
+      end
+
+      context "when using ~ for home directory" do
+        let(:persistence_filepath) { "~/tmp/hedgehog.yaml" }
+
+        it "substitutes for home" do
+          expect(FileUtils)
+            .to receive(:mkpath)
+            .with("~/tmp".sub("~", ENV['HOME']))
+
+          expect(File)
+            .to receive(:write)
+            .with(persistence_filepath.sub("~", ENV['HOME']), anything)
+
+          subject
+        end
+      end
+
+      context "and there are duplicate elements" do
+        before do
+          allow(FileUtils).to receive(:mkpath).exactly(3).times
+          allow(File).to receive(:write).exactly(3).times
+
+          described_instance << "element"
+          described_instance << "blah"
+        end
+
+        it "only saves the latest" do
+          expect(File)
+            .to receive(:write)
+            .with(persistence_filepath, "---\n- blah\n- element\n")
+
+          described_instance << "element"
+        end
+      end
+    end
   end
 
   context "with elements" do
@@ -95,7 +231,7 @@ describe Hedgehog::Input::History do
       described_instance << "three"
     end
 
-    describe "#up and #down" do
+    describe "#up and #down and #reset_index!" do
       it "behaves like history" do
         expect(described_instance.up).to eq("three")
         expect(described_instance.up).to eq("two")
@@ -107,6 +243,14 @@ describe Hedgehog::Input::History do
         expect(described_instance.down).to eq(nil)
         expect(described_instance.up).to eq("three")
       end
+
+      it "can be reset" do
+        expect(described_instance.up).to eq("three")
+        expect(described_instance.up).to eq("two")
+        described_instance.reset_index!
+        expect(described_instance.up).to eq("three")
+        expect(described_instance.up).to eq("two")
+      end
     end
 
     describe "#up and #down with matching" do
@@ -114,6 +258,7 @@ describe Hedgehog::Input::History do
         expect(described_instance.up(matching: "e")).to eq("three")
         expect(described_instance.up(matching: "e")).to eq("one")
         expect(described_instance.up(matching: "e")).to eq("one")
+        expect(described_instance.up(matching: "z")).to eq(nil)
         expect(described_instance.down(matching: "e")).to eq("three")
         expect(described_instance.down(matching: "e")).to eq(nil)
         expect(described_instance.down(matching: "e")).to eq(nil)

@@ -1,9 +1,15 @@
 module Hedgehog
   module Input
     class History
-      def initialize(limit: 50)
+      # - parameter limit: The total amount of history items to keep. When
+      #   at the maximum, the oldest will be dropped.
+      # - parameter persistence_filepath: When provided, the history will be
+      #   serialized at this path.
+      #
+      def initialize(limit: 1024 * 256, persistence_filepath: DEFAULT_FILEPATH)
         @limit = limit
-        reset_index!
+        @persistence_filepath = persistence_filepath&.sub("~", ENV['HOME'])
+        @loaded = false
       end
 
       # Returns the previous history item.
@@ -12,6 +18,8 @@ module Hedgehog
       #   that include this value will be returned.
       #
       def up(matching: nil)
+        return nil if store.count == 0
+
         @current_index = current_index - 1
         @current_index = 0 if current_index < 0
         result = store[current_index]
@@ -19,6 +27,7 @@ module Hedgehog
         return if result.nil?
 
         if matching && !result.include?(matching)
+          return nil if @current_index == 0
           return up(matching: matching)
         end
 
@@ -33,6 +42,7 @@ module Hedgehog
       #   that include this value will be returned.
       #
       def down(matching: nil)
+        return nil if store.count == 0
         return nil if current_index >= store.count
         @current_index = current_index + 1
         result = store[current_index]
@@ -46,25 +56,60 @@ module Hedgehog
         result
       end
 
+      # Inserts a new history item. Index will be reset back to the last element
+      # in the history.
+      #
+      # When inserting above the limit, the oldest element will be deleted.
+      #
       def <<(new_element)
-        return if new_element.strip.length < 1
+        new_element = new_element.strip
+        return if new_element.length < 1
         return if store.last == new_element
         store << new_element
         store.delete_at(0) if store.count > limit
         reset_index!
+        save_store
+      end
+
+      # Resets the index back to the last element in the history.
+      #
+      def reset_index!
+        return unless @loaded
+        @current_index = store.count
       end
 
       private
 
-      attr_reader :limit,
-                  :current_index
+      DEFAULT_FILEPATH = "~/.local/share/hedgehog/hedgehog_history".freeze
 
-      def store
-        @store ||= []
+      attr_reader :limit
+
+      def current_index
+        @current_index ||= reset_index!
       end
 
-      def reset_index!
-        @current_index = store.count
+      def store
+        @store ||= load_store
+      end
+
+      def load_store
+        @loaded = true
+
+        if @persistence_filepath && File.exists?(@persistence_filepath)
+          YAML.load_file(@persistence_filepath)
+        else
+          []
+        end
+      end
+
+      # TODO: for performance we don't really have to rewrite the file every
+      # time. See how fish-shell does it:
+      # https://github.com/fish-shell/fish-shell/blob/92d3f5f5487ed461ff0917a4bbb4169fd0842ca8/src/history.cpp#L1557-L1564
+      def save_store
+        return unless @persistence_filepath
+        FileUtils.mkpath(Pathname.new(@persistence_filepath).dirname.to_s)
+
+        File.write(@persistence_filepath, store.reverse.uniq.reverse.to_yaml)
       end
     end
   end
