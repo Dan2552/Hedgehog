@@ -20,6 +20,7 @@ module Hedgehog
       # - returns: String, being the line
       #
       def readline(prompt)
+        Signal.trap('SIGWINCH', method(:size_changed))
         Hedgehog::Teletype.silence! if handle_teletype
         @prompt = prompt
         redraw
@@ -43,6 +44,14 @@ module Hedgehog
       end
 
       private
+
+      def size_changed(_)
+        @line.terminal_did_resize(
+          Hedgehog::Terminal.columns,
+          Hedgehog::Terminal.rows
+        )
+        redraw
+      end
 
       # Whether teletype silencing should be managed by this class. This should
       # only be disabled if called from another input source (e.g. Editor).
