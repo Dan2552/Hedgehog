@@ -25,5 +25,9 @@ RSpec.configure do |config|
     mocks.verify_partial_doubles = true
   end
 
+  config.after(:all) do
+    Hedgehog::Teletype.restore!
+  end
+
   config.shared_context_metadata_behavior = :apply_to_host_groups
 end
