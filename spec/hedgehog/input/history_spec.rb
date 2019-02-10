@@ -7,6 +7,14 @@ describe Hedgehog::Input::History do
     it "returns nil" do
       expect(subject).to eq(nil)
     end
+
+    context "with matching argument" do
+      subject { described_instance.up(matching: "a") }
+
+      it "returns nil" do
+        expect(subject).to eq(nil)
+      end
+    end
   end
 
   describe "#down" do
@@ -14,6 +22,14 @@ describe Hedgehog::Input::History do
 
     it "returns nil" do
       expect(subject).to eq(nil)
+    end
+
+    context "with matching argument" do
+      subject { described_instance.down(matching: "a") }
+
+      it "returns nil" do
+        expect(subject).to eq(nil)
+      end
     end
   end
 
@@ -90,6 +106,20 @@ describe Hedgehog::Input::History do
         expect(described_instance.down).to eq(nil)
         expect(described_instance.down).to eq(nil)
         expect(described_instance.up).to eq("three")
+      end
+    end
+
+    describe "#up and #down with matching" do
+      it "only results in matching history items" do
+        expect(described_instance.up(matching: "e")).to eq("three")
+        expect(described_instance.up(matching: "e")).to eq("one")
+        expect(described_instance.up(matching: "e")).to eq("one")
+        expect(described_instance.down(matching: "e")).to eq("three")
+        expect(described_instance.down(matching: "e")).to eq(nil)
+        expect(described_instance.down(matching: "e")).to eq(nil)
+        expect(described_instance.up(matching: "e")).to eq("three")
+        expect(described_instance.down).to eq(nil)
+        expect(described_instance.up(matching: "w")).to eq("two")
       end
     end
   end
