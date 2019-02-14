@@ -247,6 +247,79 @@ describe Hedgehog::Input::TerminalLine do
       subject
       expect(described_instance.cursor_cols).to eq(8)
     end
+
+    context "when setting nil" do
+      let(:new_text) { nil }
+
+      it "changes the value of #text to an empty string" do
+        expect { subject }
+          .to change { described_instance.text }
+          .from(text)
+          .to("")
+      end
+    end
+  end
+
+  describe "#suffix" do
+    subject { described_instance.suffix }
+
+    context "when initalized with nil suffix" do
+      let(:suffix) { nil }
+
+      it "returns an empty string" do
+        expect(subject).to eq("")
+      end
+    end
+
+    context "when initalized with present suffix" do
+      let(:suffix) { "hello" }
+
+      it "returns the suffix" do
+        expect(subject).to eq(suffix)
+      end
+    end
+  end
+
+  describe "#suffix=" do
+    let(:suffix) { "old" }
+    let(:new_suffix) { "new" }
+    subject { described_instance.suffix = new_suffix }
+
+    it "returns the new suffix" do
+      expect(subject).to eq(new_suffix)
+    end
+
+    it "changes the value of #suffix" do
+      expect { subject }
+        .to change { described_instance.suffix }
+        .from(suffix)
+        .to(new_suffix)
+    end
+
+    context "when long enough" do
+      let(:new_suffix) { "a" * 80 }
+
+      it "can affect the #max_cursor_rows" do
+        expect { subject }
+          .to change { described_instance.max_cursor_rows }
+      end
+
+      it "can affect the #max_cursor_cols" do
+        expect { subject }
+          .to change { described_instance.max_cursor_cols }
+      end
+    end
+
+    context "when setting nil" do
+      let(:new_suffix) { nil }
+
+      it "changes the value of #suffix to an empty string" do
+        expect { subject }
+          .to change { described_instance.suffix }
+          .from(suffix)
+          .to("")
+      end
+    end
   end
 
   describe "#terminal_did_resize" do

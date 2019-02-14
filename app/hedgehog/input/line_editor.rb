@@ -38,7 +38,6 @@ module Hedgehog
       ensure
         Hedgehog::Teletype.restore! if handle_teletype
         @line = nil
-        @suffix = nil
         @cursor_position = nil
         @last_cursor_rows = nil
         reset_history_state
@@ -61,13 +60,9 @@ module Hedgehog
 
       attr_reader :prompt
 
-      attr_accessor :suffix
-      def suffix
-        @suffix ||= ""
-      end
-
       def colored_suffix
-        Hedgehog::StringExtensions.with_color(suffix, color: 240)
+        return unless line.suffix.present?
+        Hedgehog::StringExtensions.with_color(line.suffix, color: 240)
       end
 
       def size(str)
@@ -85,7 +80,7 @@ module Hedgehog
           text: "",
           cursor_index: 0,
           prefix: prompt,
-          suffix: suffix
+          suffix: nil
         )
       end
 
@@ -101,7 +96,7 @@ module Hedgehog
 
         print(line.text.gsub("\n", "\n\e[0G"))
 
-        print(colored_suffix) unless without_suffix
+        print(colored_suffix) if line.suffix && !without_suffix
 
         # A little workaround because printing *exactly* the width of the
         # terminal the would result in the cursor overlapping with the last
@@ -155,6 +150,7 @@ module Hedgehog
 
         line.insert(line.cursor_index, char)
         line.cursor_index = line.cursor_index + 1
+        auto_suggest
         redraw
       end
 
@@ -180,7 +176,10 @@ module Hedgehog
       end
 
       def go_right
-        return if line.cursor_index > line.visible_length - 1
+        if line.cursor_index > line.visible_length - 1
+          return accept_auto_suggestion
+        end
+
         line.cursor_index = line.cursor_index + 1
         redraw
       end
@@ -208,12 +207,14 @@ module Hedgehog
         return if line.cursor_index == 0
 
         line[line.cursor_index - 1] = ''
+        auto_suggest
         go_left
       end
 
       def delete
         return if line.cursor_index == line.visible_length - 1
         line[line.cursor_index] = ''
+        auto_suggest
         redraw
       end
 
@@ -322,6 +323,7 @@ module Hedgehog
         end
 
         line.cursor_index = line.visible_length
+        auto_suggest
         redraw
       end
 
@@ -336,6 +338,19 @@ module Hedgehog
 
       def visible_text
         Hedgehog::StringExtensions.without_color(line.text)
+      end
+
+      def auto_suggest
+        suggestion = input_history.suggestion_for(line.text)
+        return line.suffix = nil unless suggestion.present?
+
+        line.suffix = suggestion.sub(line.text, "").strip.presence
+      end
+
+      def accept_auto_suggestion
+        line.text = line.text + line.suffix
+        auto_suggest
+        redraw
       end
     end
   end

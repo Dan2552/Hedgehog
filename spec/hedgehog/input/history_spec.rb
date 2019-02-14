@@ -268,4 +268,26 @@ describe Hedgehog::Input::History do
       end
     end
   end
+
+  describe "#suggestion_for" do
+    let(:start) { "ech" }
+    subject { described_instance.suggestion_for(start) }
+
+    context "when there is no matching history" do
+      it "returns nil" do
+        expect(subject).to eq(nil)
+      end
+    end
+
+    context "when there is matching history" do
+      before do
+        described_instance << "echo 1"
+        described_instance << "echo 2"
+      end
+
+      it "returns the most recently executed one" do
+        expect(subject).to eq("echo 2")
+      end
+    end
+  end
 end

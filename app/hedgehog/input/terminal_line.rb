@@ -34,6 +34,14 @@ module Hedgehog
       #
       attr_reader :rows
 
+      # The text (including invisible characters e.g. color characters).
+      #
+      attr_reader :text
+
+      # The suffix text (including invisible characters e.g. color characters).
+      #
+      attr_reader :suffix
+
       # The row of the cursor in the terminal considering the size of the window
       # and whether the prefix is taking up space.
       #
@@ -48,14 +56,15 @@ module Hedgehog
         @cursor_cols
       end
 
-      # The maximum number of rows that the prefix and text should take up.
+      # The maximum number of rows that the prefix, text and suffix should take
+      # up.
       #
       def max_cursor_rows
         @max_cursor_rows
       end
 
-      # The maximum number of columns on the last maximum row that the prefix
-      # and text should take up.
+      # The maximum number of columns on the last maximum row that the prefix,
+      # text and suffix should take up.
       #
       def max_cursor_cols
         @max_cursor_cols
@@ -76,20 +85,22 @@ module Hedgehog
         calculate_cursor_position
       end
 
-      # The text (including invisible characters e.g. color characters).
-      #
-      def text
-        @text
-      end
-
       # Sets the text
       #
       # To avoid ambiguity, this will set the cursor_index to end of visible
       # text.
       #
       def text=(new_value)
-        @text = new_value.dup
+        @text = new_value.to_s.dup
         @cursor_index = visible_length
+
+        calculate_cursor_position
+      end
+
+      # Sets the suffix
+      #
+      def suffix=(new_value)
+        @suffix = new_value.to_s.dup
 
         calculate_cursor_position
       end

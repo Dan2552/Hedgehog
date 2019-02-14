@@ -5,6 +5,7 @@ module Hedgehog
     # TODO: spec
     #
     def without_color(str)
+      return str unless str.present?
       # str.gsub(/\e\[(\d+)(;\d+)*m/, "").gsub("\e[m", "")
       str.gsub(/\x1B\[([0-9]{1,3}((;[0-9]{1,3})*)?)?[m|K]/, "")
     end

@@ -78,6 +78,18 @@ module Hedgehog
         @current_index = store.count
       end
 
+      # Get a suggestion based on the beginning of a command that has been
+      # previously executed.
+      #
+      # - parameter start: The beginning of the command.
+      #
+      def suggestion_for(start)
+        store.reverse_each do |element|
+          return element if element.start_with?(start)
+        end
+        nil
+      end
+
       private
 
       DEFAULT_FILEPATH = "~/.local/share/hedgehog/hedgehog_history".freeze
