@@ -96,7 +96,20 @@ module Hedgehog
         print(prompt)
         prompt_length = StringExtensions.without_color(prompt).length
 
-        print(line.text.gsub("\n", "\n\e[0G"))
+        text_to_render = line.text.gsub("\n", "\n\e[0G")
+
+        if @history_matching.present?
+          text_to_render.sub!(
+            @history_matching,
+            Hedgehog::StringExtensions.with_color(
+              @history_matching,
+              color: 0,
+              bg_color: 15
+            )
+          )
+        end
+
+        print(text_to_render)
 
         print(colored_suffix) if line.suffix && !without_suffix
 
@@ -310,17 +323,10 @@ module Hedgehog
 
         if result == nil && direction == :down
           line.text = @history_matching
+          @history_matching = nil
         elsif result == nil
-          # no-op
+          return
         else
-          if @history_matching.present?
-            result.sub!(@history_matching,
-                        Hedgehog::StringExtensions.with_color(
-                          @history_matching,
-                          color: 0,
-                          bg_color: 15
-                        ))
-          end
           line.text = result
         end
 
