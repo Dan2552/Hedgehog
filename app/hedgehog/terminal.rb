@@ -1,5 +1,20 @@
 module Hedgehog
   module Terminal
+    # Input like directional keys are silenced so they can be used to control
+    # the input editor.
+    #
+    def silence!
+      IO.console.raw!
+    end
+    module_function :silence!
+
+    # Restores silenced state. See `silence!` for more info.
+    #
+    def restore!
+      IO.console.cooked!
+    end
+    module_function :restore!
+
     def columns
       ENV['COLUMNS']&.to_i || IO.console.winsize[1] || 80
     end

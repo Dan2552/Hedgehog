@@ -20,7 +20,7 @@ describe Hedgehog::Execution::Binary do
 
   describe "run" do
     subject { described_instance.run(command) }
-    let(:command) { double(with_binary_path: double) }
+    let(:command) { double(with_binary_path: "abcdefg") }
 
     before do
       allow(Process).to receive(:spawn)
@@ -31,9 +31,23 @@ describe Hedgehog::Execution::Binary do
     it "spawns a process with with_binary_path" do
       expect(Process)
         .to receive(:spawn)
-        .with(command.with_binary_path)
+        .with("$(exit 0); " + command.with_binary_path)
 
       subject
+    end
+
+    context "when a previous process has returned a exit code" do
+      before do
+        `$(exit 123)`
+      end
+
+      it "spawns a process with that exit code" do
+        expect(Process)
+          .to receive(:spawn)
+          .with("$(exit 123); " + command.with_binary_path)
+
+        subject
+      end
     end
 
     it "waits for the process to finish" do

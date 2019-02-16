@@ -21,7 +21,7 @@ module Hedgehog
       #
       def readline(prompt)
         Signal.trap('SIGWINCH', method(:size_changed))
-        Hedgehog::Teletype.silence! if handle_teletype
+        Hedgehog::Terminal.silence! if handle_teletype
         @prompt = prompt
         redraw
         loop do
@@ -30,13 +30,13 @@ module Hedgehog
           if result == :finish
             line.cursor_index = line.visible_length
             redraw(without_suffix: true)
-            Hedgehog::Teletype.restore!
+            Hedgehog::Terminal.restore!
             puts ""
             return visible_text
           end
         end
       ensure
-        Hedgehog::Teletype.restore! if handle_teletype
+        Hedgehog::Terminal.restore! if handle_teletype
         @line = nil
         @cursor_position = nil
         @last_cursor_rows = nil

@@ -1,4 +1,4 @@
-require_relative "hedgehog/teletype"
+require_relative "hedgehog/terminal"
 
 begin
   require 'active_support/all'
@@ -50,5 +50,5 @@ begin
     end
   end
 ensure
-  Hedgehog::Teletype.restore!
+  Hedgehog::Terminal.restore!
 end

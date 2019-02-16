@@ -28,7 +28,7 @@ RSpec.configure do |config|
   end
 
   config.after(:all) do
-    Hedgehog::Teletype.restore!
+    Hedgehog::Terminal.restore!
   end
 
   config.shared_context_metadata_behavior = :apply_to_host_groups

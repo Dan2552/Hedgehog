@@ -61,7 +61,7 @@ module Hedgehog
         return nil if results_to_show == 0
 
         Terminal.hide_cursor
-        Hedgehog::Teletype.silence! if handle_teletype
+        Hedgehog::Terminal.silence! if handle_teletype
         draw
         loop do
           result = handle_character
@@ -73,7 +73,7 @@ module Hedgehog
         end
       ensure
         Terminal.show_cursor
-        Hedgehog::Teletype.restore! if handle_teletype
+        Hedgehog::Terminal.restore! if handle_teletype
       end
 
       private
