@@ -353,7 +353,7 @@ module Hedgehog
         suggestion = input_history.suggestion_for(line.text)
         return line.suffix = nil unless suggestion.present?
 
-        line.suffix = suggestion.sub(line.text, "").strip.presence
+        line.suffix = suggestion.sub(line.text, "").rstrip.presence
       end
 
       def accept_auto_suggestion
