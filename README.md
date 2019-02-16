@@ -28,7 +28,7 @@ end
 
 # Define methods
 def cwd
-  `pwd`.chomp.split("/").last
+  Dir.pwd.split("/").last
 end
 
 # Customize the prompt
