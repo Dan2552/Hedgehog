@@ -39,16 +39,6 @@ module Hedgehog
       work_it_out
     end
 
-    def <<(command)
-      if @original
-        @original += "\n" + command
-      else
-        @original = command
-      end
-
-      work_it_out
-    end
-
     def binary_name
       @binary_name
     end

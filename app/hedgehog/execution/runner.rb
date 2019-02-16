@@ -6,7 +6,6 @@ module Hedgehog
       end
 
       def run(command_string)
-        
         command = Hedgehog::Command.new(command_string)
 
         settings.input_history << command.original if is_history_enabled

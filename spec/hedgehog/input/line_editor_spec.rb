@@ -90,10 +90,8 @@ RSpec.describe Hedgehog::Input::LineEditor do
             end
           end
 
-          expected_output = Regexp.escape("hi\e[38;5;0m\e[48;5;15m^C\e[0m")
-
           expect(&rescued_subject)
-            .to output(/#{expected_output}/)
+            .to output(/hi.*\^C/)
             .to_stdout
         end
       end

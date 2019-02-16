@@ -341,6 +341,7 @@ module Hedgehog
       end
 
       def auto_suggest
+        return line.suffix = nil unless line.text.present?
         suggestion = input_history.suggestion_for(line.text)
         return line.suffix = nil unless suggestion.present?
 

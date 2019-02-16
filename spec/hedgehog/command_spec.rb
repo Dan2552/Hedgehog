@@ -1,9 +1,9 @@
 describe Hedgehog::Command do
-  let(:described_instance) { described_class.new }
+  let(:described_instance) { described_class.new(command) }
 
   before do
-    Hedgehog::Settings.shared_instance.binary_in_path_finder = Hedgehog::BinaryInPathFinder::Ruby.new
-    described_instance << command
+    settings = Hedgehog::Settings.shared_instance
+    settings.binary_in_path_finder = Hedgehog::BinaryInPathFinder::Ruby.new
   end
 
   context "echo hello world" do
@@ -45,64 +45,10 @@ describe Hedgehog::Command do
 
       it { is_expected.to eq(false) }
 
-      context "echo hello world \\" do
-        let(:command) { "echo hello world \\" }
+      context "when ending in a backslash" do
+        let(:command) { "echo hello world \\ " }
 
         it { is_expected.to eq(true) }
-      end
-
-      shared_examples_for "balanced" do
-        it { is_expected.to eq(true) }
-
-        context "when closing" do
-          before do
-            described_instance << second_command
-          end
-
-          it { is_expected.to eq(false) }
-        end
-      end
-
-      context "{" do
-        let(:command) { "{" }
-        let(:second_command) { "}" }
-
-        it_behaves_like("balanced")
-      end
-
-      context "[" do
-        let(:command) { "[" }
-        let(:second_command) { "]" }
-
-        it_behaves_like("balanced")
-      end
-
-      context "(" do
-        let(:command) { "(" }
-        let(:second_command) { ")" }
-
-        it_behaves_like("balanced")
-      end
-
-      context "`" do
-        let(:command) { "`" }
-        let(:second_command) { "`" }
-
-        it_behaves_like("balanced")
-      end
-
-      context "'" do
-        let(:command) { "'" }
-        let(:second_command) { "'" }
-
-        it_behaves_like("balanced")
-      end
-
-      context '"' do
-        let(:command) { '"' }
-        let(:second_command) { '"' }
-
-        it_behaves_like("balanced")
       end
     end
 
