@@ -22,7 +22,9 @@ module Hedgehog
       end
 
       def get_prompt
-        Hedgehog::State.shared_instance.prompt.call || ""
+        Hedgehog::State.shared_instance.prompt.call || "> "
+      rescue
+        "> "
       end
 
       def runner

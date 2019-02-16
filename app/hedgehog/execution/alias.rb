@@ -10,7 +10,15 @@ module Hedgehog
       rescue LocalJumpError
         # Allow calls to `break`
       rescue Exception => e
+        relevant_line = e
+          .backtrace
+          .select { |l| l.include?("#{ENV['HOME']}/.hedgehog") }
+          .first
+          &.sub(/:in .*/, "")
+          &.sub(/^/, "error in ")
+
         puts e
+        puts relevant_line
       end
 
       private
