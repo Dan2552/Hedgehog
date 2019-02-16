@@ -108,7 +108,7 @@ module Hedgehog
         @loaded = true
 
         if @persistence_filepath && File.exists?(@persistence_filepath)
-          YAML.load_file(@persistence_filepath)
+          YAML.load_file(@persistence_filepath) || []
         else
           []
         end

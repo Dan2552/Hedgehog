@@ -35,12 +35,12 @@ describe Hedgehog::Input::History do
 
       context "if the file exists" do
         before do
-          expect(File)
+          allow(File)
             .to receive(:exists?)
             .with(persistence_filepath)
             .and_return(true)
 
-          expect(YAML)
+          allow(YAML)
             .to receive(:load_file)
             .with(persistence_filepath)
             .and_return(["one", "two", "three"])
@@ -48,6 +48,19 @@ describe Hedgehog::Input::History do
 
         it "reads the history from the file" do
           expect(subject).to eq("three")
+        end
+
+        context "and it's empty" do
+          before do
+            allow(YAML)
+              .to receive(:load_file)
+              .with(persistence_filepath)
+              .and_return(false)
+          end
+
+          it "returns nil" do
+            expect(subject).to eq(nil)
+          end
         end
       end
     end
