@@ -8,6 +8,12 @@ module Hedgehog
 
         def _run(str)
           _binding.eval(str)
+        rescue Exception => e
+          # In a shell we don't necessarily want a full exception. Especially
+          # if they mislead the reason to point to Hedgehog internals.
+          raise e.to_s
+            .sub(/#{__FILE__}:\d*: /, '')
+            .sub(/ for #<Hedgehog::Execution::Ruby::Binding:.*>/, '')
         end
 
         private
