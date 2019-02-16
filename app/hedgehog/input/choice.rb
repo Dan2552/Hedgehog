@@ -143,17 +143,8 @@ module Hedgehog
       # Clears all lines rendered by this instance.
       #
       def clear_all
-        previous_draw_amount_of_lines.times do
-          clear_line
-        end
-      end
-
-      # Clears the current line and puts the cursor at the beginning of the
-      # previous line.
-      #
-      def clear_line
-        print "\e[2K" # clear line
-        print "\e[1F" # move to the beginning of 1 line up
+        Terminal.move_up(previous_draw_amount_of_lines)
+        Terminal.clear_screen_from_cursor
       end
 
       # Draws a single line for the choice selection.
