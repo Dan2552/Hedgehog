@@ -46,6 +46,8 @@ module Hedgehog
       private
 
       def size_changed(_)
+        return if @line.nil?
+
         @line.terminal_did_resize(
           Hedgehog::Terminal.columns,
           Hedgehog::Terminal.rows
