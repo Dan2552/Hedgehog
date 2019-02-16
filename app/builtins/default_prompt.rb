@@ -1,1 +1,1 @@
-prompt { "#{`pwd`.chomp} > " }
+prompt { "#{Dir.pwd} > " }
