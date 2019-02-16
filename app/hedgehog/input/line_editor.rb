@@ -111,7 +111,9 @@ module Hedgehog
 
         print(text_to_render)
 
-        print(colored_suffix) if line.suffix && !without_suffix
+        if line.suffix.present? && !without_suffix
+          print(colored_suffix.gsub("\n", "\n\e[0G"))
+        end
 
         # A little workaround because printing *exactly* the width of the
         # terminal the would result in the cursor overlapping with the last
