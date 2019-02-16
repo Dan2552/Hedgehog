@@ -72,7 +72,7 @@ module Hedgehog
     end
 
     def incomplete?
-      (last_line_has_backslash_at_end? || !balanced?) != false
+      last_line_has_backslash_at_end?
     end
 
     def env_vars
@@ -118,35 +118,10 @@ module Hedgehog
         .binary_in_path_finder
     end
 
-    def balanced?
-      pairs = {
-        '{' => '}',
-        '[' => ']',
-        '(' => ')',
-        '`' => '`',
-        "'" => "'",
-        '"' => '"'
-      }
-
-      expectations = []
-      original.chars do |char|
-        if expectations.last == char
-          expectations.pop
-          next
-        end
-
-        if expectation = pairs[char]
-          expectations << expectation
-        end
-      end
-
-      expectations.empty?
-    end
-
     def last_line_has_backslash_at_end?
       last_line = original.split("\n").compact.last
       return false if last_line.nil?
-      last_line.match(/\\\s*$/)
+      last_line.match(/\\\s*$/) != nil
     end
   end
 end
