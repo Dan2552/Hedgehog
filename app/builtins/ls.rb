@@ -5,8 +5,7 @@ unless Hedgehog::Settings
          .include?("ls")
 
   function "ls" do |args|
-    Process.spawn("ls -G #{args}")
-    Process.wait
+    binary_run "ls -G #{args}"
   end
 
 end

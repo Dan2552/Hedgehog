@@ -4,6 +4,11 @@ module Hedgehog
       _runner.run(command_string)
     end
 
+    def binary_run(command_string)
+      command = Hedgehog::Command.new(command_string)
+      Hedgehog::Execution::Binary.new.run(command)
+    end
+
     def prompt(&blk)
       state = Hedgehog::State.shared_instance
 
