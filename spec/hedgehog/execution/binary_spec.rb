@@ -31,7 +31,8 @@ describe Hedgehog::Execution::Binary do
     it "spawns a process with with_binary_path" do
       expect(Process)
         .to receive(:spawn)
-        .with("$(exit 0); " + command.with_binary_path)
+        .with("$(exit 0); script -q -t 0 /dev/null " + command.with_binary_path,
+              anything)
 
       subject
     end
@@ -44,48 +45,8 @@ describe Hedgehog::Execution::Binary do
       it "spawns a process with that exit code" do
         expect(Process)
           .to receive(:spawn)
-          .with("$(exit 123); " + command.with_binary_path)
-
-        subject
-      end
-    end
-
-    it "waits for the process to finish" do
-      expect(Process)
-        .to receive(:wait)
-
-      subject
-    end
-
-    context "when the process is interrupted" do
-      let(:pid) { double }
-
-      before do
-        allow(Process)
-          .to receive(:spawn)
-          .and_return(pid)
-
-        expect(Process)
-          .to receive(:wait)
-          .and_raise(Interrupt)
-
-        expect(Process)
-          .to receive(:wait)
-          .and_return(nil)
-      end
-
-      it "kills the process" do
-        expect(Process)
-          .to receive(:kill)
-          .with("INT", pid)
-
-        subject
-      end
-
-      it "puts a funny arrow thing" do
-        expect(STDOUT)
-          .to receive(:puts)
-          .with("⏎")
+          .with("$(exit 123); script -q -t 0 /dev/null " + command.with_binary_path,
+                anything)
 
         subject
       end

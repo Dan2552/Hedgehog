@@ -16,8 +16,6 @@ module Hedgehog
             .sub(/ for #<Hedgehog::Execution::Ruby::Binding:.*>/, '')
         end
 
-        private
-
         def _binding
           @_binding ||= binding
         end

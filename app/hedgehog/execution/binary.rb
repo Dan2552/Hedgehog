@@ -12,31 +12,37 @@ module Hedgehog
           # e.g `$(exit 12); echo $?` will print 12
           set_previous_status = "$(exit #{$?&.exitstatus || 0}); "
 
-          # Allow recording of session characters. Allowing both color
-          # characters and interactive sessions to be recorded.
-          make_typescript_of_terminal_session = "script -q /dev/null "
-
-          # Pipe to terminal while we're taking the original stdout/stderr
-          # output into our io_pipe object.
-          pipe_to_terminal = " | tee /dev/tty"
+          # Prevents processes from detecting they're not interacting with TTY
+          # (if they could, they generally don't print color characters).
+          #
+          # A PTY could be instead used, but then vi doesn't recognise the
+          # correct size of the terminal.
+          #
+          # If /dev/tty were used as the argument here instead of /dev/null,
+          # output would go directly to terminal, however then wouldn't work
+          # when using commands with pipes (e.g. "command | grep xyz").
+          #
+          enforce_color = "script -q -t 0 /dev/null "
 
           to_execute = set_previous_status +
-            make_typescript_of_terminal_session +
-            command.with_binary_path +
-            pipe_to_terminal
+            enforce_color +
+            command.with_binary_path
 
+          output = ""
           io_r, io_w = IO.pipe
-          pid = Process.spawn(to_execute, out: io_w)
+          pid = Process.spawn(to_execute, out: io_w, err: [:child, :out])
           io_w.close
-          Process.wait
-
-          $output = io_r.read
-
-          io_r.close
-        rescue Interrupt
-          Process.kill("INT", pid)
+          while c = io_r.getc
+            print c
+            output += c
+          end
           Process.wait(pid)
-          puts "⏎"
+          print "⏎\r\n" unless output.end_with?("\r\n") || output.empty?
+
+          Hedgehog::Execution::Ruby::Binding
+            .shared_instance
+            ._binding
+            .local_variable_set(:_, output)
         end
       end
     end
