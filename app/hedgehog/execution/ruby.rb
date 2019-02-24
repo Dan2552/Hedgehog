@@ -6,6 +6,10 @@ module Hedgehog
           @shared_instance ||= new
         end
 
+        def initialize
+          _binding.local_variable_set(:_, nil)
+        end
+
         def _run(str)
           _binding.eval(str)
         rescue Exception => e
@@ -26,7 +30,10 @@ module Hedgehog
       end
 
       def run(command)
-        puts "=> #{Hedgehog::Execution::Ruby::Binding.shared_instance._run(command.original).inspect}"
+        binding_instance = Hedgehog::Execution::Ruby::Binding.shared_instance
+        return_value = binding_instance._run(command.original)
+        puts "=> #{return_value.inspect}"
+        binding_instance._binding.local_variable_set(:_, return_value)
       rescue Exception => e
         puts e
       end
