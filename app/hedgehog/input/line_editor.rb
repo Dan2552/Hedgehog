@@ -87,6 +87,8 @@ module Hedgehog
       end
 
       def redraw(without_suffix: false)
+        Terminal.title = Dir.pwd.split("/").last
+
         Terminal.hide_cursor
 
         Terminal.move_up(@last_cursor_rows || 0)

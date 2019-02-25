@@ -1,5 +1,10 @@
 module Hedgehog
   module Terminal
+    def title=(str)
+      print "\033]0;#{str}\007"
+    end
+    module_function :title=
+
     # Input like directional keys are silenced so they can be used to control
     # the input editor.
     #
