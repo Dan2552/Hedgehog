@@ -25,6 +25,7 @@ module Hedgehog
           enforce_color = "script -q -t 0 /dev/null "
 
           to_execute = set_previous_status +
+            shared_variables +
             enforce_color +
             command.with_binary_path
 
@@ -44,6 +45,70 @@ module Hedgehog
             ._binding
             .local_variable_set(:_, output)
         end
+      end
+
+      private
+
+      DEFAULT_GLOBAL_VARIABLES = [
+        :$LOAD_PATH,
+        :$",
+        :$LOADED_FEATURES,
+        :$-I,
+        :$-p,
+        :$-l,
+        :$-a,
+        :$binding,
+        :$@,
+        :$!,
+        :$stdin,
+        :$stdout,
+        :$stderr,
+        :$>,
+        :$<,
+        :$.,
+        :$FILENAME,
+        :$-i,
+        :$*,
+        :$SAFE,
+        :$_,
+        :$~,
+        :$$,
+        :$?,
+        :$;,
+        :$-F,
+        :$&,
+        :$`,
+        :$',
+        :$=,
+        :$KCODE,
+        :$+,
+        :$-K,
+        :$,,
+        :$/,
+        :$-0,
+        :$\,
+        :$VERBOSE,
+        :$-v,
+        :$-w,
+        :$-W,
+        :$DEBUG,
+        :$-d,
+        :$0,
+        :$PROGRAM_NAME,
+        :$:
+      ]
+
+      def shared_variables
+        vars = global_variables - DEFAULT_GLOBAL_VARIABLES
+        values = vars.map { |x| eval(x.to_s).to_s }
+
+        value = ""
+        vars.each.with_index do |var, index|
+          var_name = var.to_s.sub("$", "")
+          str_value = values[index].gsub("'", "\"")
+          value += "#{var_name}='#{str_value}';"
+        end
+        value
       end
     end
   end
