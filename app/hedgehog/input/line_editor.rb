@@ -38,7 +38,6 @@ module Hedgehog
       ensure
         Hedgehog::Terminal.restore! if handle_teletype
         @line = nil
-        @cursor_position = nil
         @last_cursor_rows = nil
         reset_history_state
       end

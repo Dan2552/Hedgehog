@@ -73,23 +73,5 @@ module Hedgehog
       print "\e[#{columns}D"
     end
     module_function :move_left
-
-    def cursor_position
-      result = ""
-      $stdin.raw do |stdin|
-        $stdout << "\e[6n"
-        $stdout.flush
-        while (c = stdin.getc) != 'R'
-          result << c if c
-        end
-      end
-      matches = result.match /(?<row>\d+);(?<column>\d+)/
-
-      [
-        Integer(matches[:column]),
-        Integer(matches[:row])
-      ]
-    end
-    module_function :cursor_position
   end
 end
