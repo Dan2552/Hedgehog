@@ -10,6 +10,14 @@ describe Hedgehog::BinaryInPathFinder::Ruby do
         .and_return(["/tmp/banana"])
     end
 
+    context "when the binary would only match because of regex" do
+      let(:binary) { "|n|"}
+
+      it "returns nil" do
+        expect(subject).to eq(nil)
+      end
+    end
+
     context "when the binary is in $PATH" do
       let(:binary) { "banana" }
 
