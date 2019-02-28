@@ -29,7 +29,7 @@ describe Hedgehog::Environment::Path do
     end
 
     it "returns each binary in each path in $PATH" do
-      expect(subject).to eq([bin_path.join("hedgehog").to_s])
+      expect(subject).to eq([bin_path.join("chruby_hedgehog").to_s, bin_path.join("hedgehog").to_s])
     end
   end
 end
