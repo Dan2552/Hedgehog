@@ -12,6 +12,7 @@ module Hedgehog
     attr_accessor :disabled_built_ins
     attr_accessor :execution_order
     attr_accessor :input_history
+    attr_accessor :input_source
 
     # Disables user input/interaction.
     #

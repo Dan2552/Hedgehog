@@ -35,17 +35,17 @@ module Hedgehog
 
       def get_next
         characters ||= []
-        characters << STDIN.getc
+        characters << input_source.getc
 
         if characters.first == "\e"
           # Because escaped sequences start with, well, escape we actually don't
           # really know whether the first character is from a sequence or just
           # an escape keypress. The workaround is to wait and see.
           thread = Thread.new {
-            2.times { characters << STDIN.getc.chr }
+            2.times { characters << input_source.getc.chr }
 
-            characters << STDIN.getc.chr if characters == ["\e", "[", "3"]
-            3.times { characters << STDIN.getc.chr } if characters.join("").start_with?("\e[1")
+            characters << input_source.getc.chr if characters == ["\e", "[", "3"]
+            3.times { characters << input_source.getc.chr } if characters.join("").start_with?("\e[1")
           }
           thread.join(ESCAPE_WAIT_LIMIT)
           thread.kill
@@ -53,6 +53,12 @@ module Hedgehog
 
         result = Character.new(characters.join(""))
         result
+      end
+
+      private
+
+      def input_source
+        Hedgehog::Settings.shared_instance.input_source || STDIN
       end
     end
   end

@@ -22,12 +22,6 @@ describe Hedgehog::Execution::Binary do
     subject { described_instance.run(command) }
     let(:command) { double(with_binary_path: "abcdefg") }
 
-    before do
-      allow(Process).to receive(:spawn)
-      allow(Process).to receive(:wait)
-      allow(Process).to receive(:kill)
-    end
-
     it "spawns a pty with with_binary_path" do
       expect(PTY)
         .to receive(:spawn)

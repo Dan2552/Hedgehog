@@ -19,10 +19,12 @@ module Hedgehog
         input_thread = nil
         IO.console.raw!
 
+        input = Hedgehog::Settings.shared_instance.input_source&.reader || STDIN
+
         PTY.spawn(to_execute) do |read, write, pid|
           write.winsize = STDOUT.winsize
           Signal.trap(:WINCH) { write.winsize = STDOUT.winsize }
-          input_thread = Thread.new { IO.copy_stream(STDIN, write) }
+          input_thread = Thread.new { IO.copy_stream(input, write) }
 
           read.each_char do |char|
             STDOUT.print char
