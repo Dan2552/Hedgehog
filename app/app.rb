@@ -1,3 +1,8 @@
+# Start listening for keyboard input as soon as possible.
+#
+require_relative "hedgehog/input/preemptive_input"
+input_source = Hedgehog::Input::PreemptiveInput.new
+
 require_relative "hedgehog/terminal"
 
 begin
@@ -30,6 +35,7 @@ begin
     ]
     config.input_history = Hedgehog::Input::History.new
     config.use_homebrew_bash_completions = true
+    config.input_source = input_source
   end
 
   # Load builtins
@@ -52,4 +58,5 @@ begin
   end
 ensure
   Hedgehog::Terminal.restore!
+  input_source.close
 end
