@@ -267,6 +267,7 @@ module Hedgehog
           line.cursor_index = size(line.text)
         end
 
+        auto_suggest
         redraw
       rescue Interrupt
         interrupt
