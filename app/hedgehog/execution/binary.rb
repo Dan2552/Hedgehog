@@ -24,26 +24,29 @@ module Hedgehog
           #
           enforce_color = "script -q -t 0 /dev/null "
 
-          to_execute = set_previous_status +
-            shared_variables +
-            enforce_color +
-            command.with_binary_path
+          # to_execute = set_previous_status +
+          #   shared_variables +
+          #   enforce_color +
+          #   command.with_binary_path
 
-          output = ""
-          io_r, io_w = IO.pipe
-          pid = Process.spawn(to_execute, out: io_w, err: [:child, :out])
-          io_w.close
-          while c = io_r.getc
-            print c
-            output += c
-          end
+          pid = Process.spawn(set_previous_status + command.with_binary_path)
           Process.wait(pid)
-          print "⏎\r\n" unless output.end_with?("\r\n") || output.empty?
 
-          Hedgehog::Execution::Ruby::Binding
-            .shared_instance
-            ._binding
-            .local_variable_set(:_, output)
+          # output = ""
+          # io_r, io_w = IO.pipe
+          # pid = Process.spawn(to_execute, out: io_w, err: [:child, :out])
+          # io_w.close
+          # while c = io_r.getc
+          #   print c
+          #   output += c
+          # end
+          # Process.wait(pid)
+          # print "⏎\r\n" unless output.end_with?("\r\n") || output.empty?
+
+          # Hedgehog::Execution::Ruby::Binding
+          #   .shared_instance
+          #   ._binding
+          #   .local_variable_set(:_, output)
         end
       end
 
