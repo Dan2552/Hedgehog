@@ -249,7 +249,7 @@ module Hedgehog
         complete_proc = if line.text.include?(" ")
                           nil
                         else
-                          Hedgehog::Input::Choice::PATH_BINARY_PROC
+                          Hedgehog::Input::Choice::PATH_BINARY_AND_FILEPATHS_PROC
                         end
 
         current_word, range = current_word_and_range

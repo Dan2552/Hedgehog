@@ -35,6 +35,10 @@ module Hedgehog
         end
       }
 
+      PATH_BINARY_AND_FILEPATHS_PROC = proc { |input|
+        PATH_BINARY_PROC.call(input) + DEFAULT_PROC.call(input)
+      }
+
       def initialize(editor: nil, handle_teletype: true, completion_proc: nil)
         @editor = editor
         @handle_teletype = handle_teletype
