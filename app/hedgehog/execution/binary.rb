@@ -6,14 +6,16 @@ module Hedgehog
       end
 
       def run(command)
-        begin
-          # To set the $? variable for the process, we first run an exit.
-          #
-          # e.g `$(exit 12); echo $?` will print 12
-          set_previous_status = "$(exit #{$?&.exitstatus || 0}); "
+        # To set the $? variable for the process, we first run an exit.
+        #
+        # e.g `$(exit 12); echo $?` will print 12
+        set_previous_status = "$(exit #{$?&.exitstatus || 0}); "
 
-          system(set_previous_status + command.with_binary_path)
-        end
+        system(set_previous_status + command.with_binary_path)
+
+      rescue Interrupt
+      ensure
+        Process.wait rescue SystemCallError
       end
     end
   end
