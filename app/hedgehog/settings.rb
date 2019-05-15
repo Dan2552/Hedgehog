@@ -18,5 +18,7 @@ module Hedgehog
     # E.g. to require elsewhere, or for specs.
     #
     attr_accessor :disable_interaction
+
+    attr_accessor :disable_prompt_execution_warning
   end
 end
