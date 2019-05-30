@@ -6,7 +6,7 @@ unless Hedgehog::Settings
 
   function "cd" do |args|
     begin
-      dir = args.to_s.shellsplit.first.chomp
+      dir = args.to_s.shellsplit.first&.chomp || ENV['HOME']
       dir = ENV['OLDPWD'] if dir == "-"
 
       ENV['OLDPWD'] = Dir.pwd
