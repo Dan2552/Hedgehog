@@ -9,7 +9,9 @@ module Hedgehog
         # To set the $? variable for the process, we first run an exit.
         #
         # e.g `$(exit 12); echo $?` will print 12
-        system("exit #{$?&.exitstatus || 0}")
+        set_previous_status = "$(exit #{$?&.exitstatus || 0}); "
+
+        to_execute = set_previous_status + command.with_binary_path
 
         # ----------------------
         # SYSTEM - problems: can't see output, can't print newline if there isn't one
@@ -37,16 +39,14 @@ module Hedgehog
         require "io/console"
 
         Hedgehog::Terminal.silence!
-        PTY.spawn(command.with_binary_path, in: STDIN) do |stdout_and_err, stdin, pid|
+        PTY.spawn(to_execute) do |stdout_and_err, stdin, pid|
           stdout_and_err.winsize = $stdout.winsize
           Signal.trap(:WINCH) do
-            # puts "Terminal resized to #{$stdout.winsize}"
             stdout_and_err.winsize = $stdout.winsize
           end
           thread = Thread.new(stdin) do |terr|
             while true
               char = STDIN.read(1)
-              # print(char)
               stdin << char
             end
           end
