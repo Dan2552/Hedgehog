@@ -1,5 +1,7 @@
 module Hedgehog
   module DSL
+    module_function
+
     def run(command_string)
       _runner.run(command_string)
     end
