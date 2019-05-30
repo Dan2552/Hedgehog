@@ -32,20 +32,34 @@ module Hedgehog
 
         # ----------------------
         # PTY - problems: irb doesn't work properly
-
         output = ""
         require 'pty'
-        PTY.spawn(command.with_binary_path) do |stdout, stdin, pid|
-          stdin.close
+        require "io/console"
+
+        Hedgehog::Terminal.silence!
+        PTY.spawn(command.with_binary_path, in: STDIN) do |stdout_and_err, stdin, pid|
+          stdout_and_err.winsize = $stdout.winsize
+          Signal.trap(:WINCH) do
+            # puts "Terminal resized to #{$stdout.winsize}"
+            stdout_and_err.winsize = $stdout.winsize
+          end
+          thread = Thread.new(stdin) do |terr|
+            while true
+              char = STDIN.read(1)
+              # print(char)
+              stdin << char
+            end
+          end
           begin
-            while (char = stdout.getc)
+            while (char = stdout_and_err.getc)
               print char
               output += char
             end
-            # stdout.each { |line| print line }
           rescue Errno::EIO
           ensure
+            thread.kill
             Process.wait(pid)
+            Hedgehog::Terminal.restore!
           end
         end
 
