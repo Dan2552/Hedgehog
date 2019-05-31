@@ -33,43 +33,105 @@ module Hedgehog
         # end
 
         # ----------------------
-        # PTY - problems: irb doesn't work properly
+        # PTY - problems:
+        # irb doesn't work properly - SOLVED by thread passing characters into stdin
+        # long outputs take forever to print
+        # needs separate thread handling stdin
+
+        # output = ""
+        # require 'pty'
+        # require "io/console"
+
+        # Hedgehog::Terminal.silence!
+        # PTY.spawn(to_execute) do |stdout_and_err, stdin, pid|
+        #   stdout_and_err.winsize = $stdout.winsize
+        #   Signal.trap(:WINCH) do
+        #     stdout_and_err.winsize = $stdout.winsize
+        #   end
+        #   thread = Thread.new(stdin) do |terr|
+        #     while true
+        #       char = STDIN.read(1)
+        #       stdin << char
+        #     end
+        #   end
+        #   begin
+        #     while (char = stdout_and_err.getc)
+        #       print char
+        #       output += char
+        #     end
+        #   rescue Errno::EIO
+        #   ensure
+        #     thread.kill
+        #     Process.wait(pid)
+        #     Hedgehog::Terminal.restore!
+        #   end
+        # end
+
+        # -------------
+        # PTY 2
+        # problems:
+        # - printing characters is slow (i think we're stuck with it though).
+
+        start_time = Time.now.to_f
+
         output = ""
         require 'pty'
-        require "io/console"
+        require 'io/console'
 
-        Hedgehog::Terminal.silence!
-        PTY.spawn(to_execute) do |stdout_and_err, stdin, pid|
-          stdout_and_err.winsize = $stdout.winsize
-          Signal.trap(:WINCH) do
-            stdout_and_err.winsize = $stdout.winsize
-          end
-          thread = Thread.new(stdin) do |terr|
-            while true
-              char = STDIN.read(1)
-              stdin << char
-            end
-          end
-          begin
-            while (char = stdout_and_err.getc)
-              print char
-              output += char
-            end
-          rescue Errno::EIO
-          ensure
-            thread.kill
-            Process.wait(pid)
-            Hedgehog::Terminal.restore!
-          end
+        master, slave = PTY.open
+
+        pid = Process.spawn(to_execute, :in => STDIN, [:out, :err] => slave)
+        slave.close
+
+        master.winsize = $stdout.winsize
+        Signal.trap(:WINCH) do
+          master.winsize = $stdout.winsize
         end
 
-        print "⏎\r\n" unless output.end_with?("\r\n") || output.empty?
+        Signal.trap "SIGINT" do
+          Process.kill("INT", pid)
+        end
 
+        master.each_char do |char|
+          STDOUT.print char
+          output.concat(char)
+        end
+
+        Process.wait(pid)
+        master.close
+
+# -----------------------
+
+        # IO.popen(to_execute, :in => STDIN, :out => slave, err: [:child, :out]) do |_|
+        #   slave.close
+        #   master.winsize = $stdout.winsize
+        #   Signal.trap(:WINCH) do
+        #     master.winsize = $stdout.winsize
+        #   end
+
+        #   master.each_char do |char|
+        #     STDOUT.print char
+        #     output.concat(char)
+        #   end
+        # end
+
+        # puts "hello?"
+
+
+# ------------------
+
+
+        # Process.spawn(to_execute, out: slave, err: [:child, :out])
+
+
+
+
+        print "⏎\r\n" unless output.end_with?("\r\n") || output.empty?
+        puts Time.now.to_f - start_time
         Hedgehog::Execution::Ruby::Binding
           .shared_instance
           ._binding
           .local_variable_set(:_, output)
-      rescue Interrupt
       ensure
         Process.wait rescue SystemCallError
       end
