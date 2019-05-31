@@ -6,7 +6,8 @@ module Hedgehog
       end
 
       def run(command)
-        aliases[command.binary_name.to_s].call(command.arguments)
+        output = aliases[command.binary_name.to_s].call(command.arguments)
+        set_underscore(output)
       rescue LocalJumpError
         # Allow calls to `break`
       rescue Exception => e
@@ -19,6 +20,7 @@ module Hedgehog
 
         puts e
         puts relevant_line
+        set_underscore(nil)
       end
 
       private
@@ -27,6 +29,13 @@ module Hedgehog
         Hedgehog::State
           .shared_instance
           .aliases
+      end
+
+      def set_underscore(value)
+        Hedgehog::Execution::Ruby::Binding
+          .shared_instance
+          ._binding
+          .local_variable_set(:_, value)
       end
     end
   end
