@@ -35,6 +35,14 @@ module Hedgehog
         end
       }
 
+      RUBY_COMPLETIONS = proc { |input|
+        require 'irb'
+        require 'irb/completion'
+        IRB.setup(nil)
+        IRB.conf[:MAIN_CONTEXT] = IRB::Irb.new.context
+        IRB::InputCompletor::CompletionProc.call(input).compact
+      }
+
       # Note: when calling this, the proc expects the following ENV vars are
       # already set:
       #
@@ -94,7 +102,7 @@ module Hedgehog
       }
 
       PATH_BINARY_AND_FILEPATHS_PROC = proc { |input|
-        PATH_BINARY_PROC.call(input) + FILEPATH_PROC.call(input)
+        PATH_BINARY_PROC.call(input) + FILEPATH_PROC.call(input) + RUBY_COMPLETIONS.call(input)
       }
 
       BASH_AND_FILEPATHS_PROC = proc { |input|
@@ -104,7 +112,7 @@ module Hedgehog
           suggestions += HOMEBREW_BASH_COMPLETIONS.call(input)
         end
 
-        suggestions += FILEPATH_PROC.call(input)
+        suggestions += FILEPATH_PROC.call(input) + RUBY_COMPLETIONS.call(input)
       }
 
       def initialize(editor: nil, handle_teletype: true, completion_proc: nil)
