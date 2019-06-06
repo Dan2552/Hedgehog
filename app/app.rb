@@ -29,6 +29,7 @@ begin
       Hedgehog::Execution::Ruby.new,
     ]
     config.input_history = Hedgehog::Input::History.new
+    config.use_homebrew_bash_completions = true
   end
 
   # Load builtins

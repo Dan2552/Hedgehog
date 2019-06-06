@@ -206,7 +206,7 @@ module Hedgehog
         if line[line.cursor_index - 1] == " "
           go_left
         end
-        current_word, range = current_word_and_range
+        _, range, _ = current_word_and_range_and_index
         line.cursor_index = range.first
         redraw
       end
@@ -216,7 +216,7 @@ module Hedgehog
         go_right if line[line.cursor_index] == " "
         go_right if line[line.cursor_index - 1] == " "
 
-        current_word, range = current_word_and_range
+        _, range, _ = current_word_and_range_and_index
         line.cursor_index = range.last + 1
         redraw
       end
@@ -247,18 +247,26 @@ module Hedgehog
 
       def auto_complete
         complete_proc = if line.text.include?(" ")
-                          nil
+                          Hedgehog::Input::Choice::BASH_AND_FILEPATHS_PROC
                         else
                           Hedgehog::Input::Choice::PATH_BINARY_AND_FILEPATHS_PROC
                         end
 
-        current_word, range = current_word_and_range
+        current_word, range, word_index = current_word_and_range_and_index
 
         indentation = [size(prompt) + range.first - 1, 0].max
+
+        # COMP_WORDS and COMP_CWORD are used by bash-style autocompletion.
+        #
+        ENV["COMP_WORDS"] = "(" + words.map { |w| "'#{w}'" }.join(" ") + ")"
+        ENV["COMP_CWORD"] = word_index.to_s
 
         result = Hedgehog::Input::Choice
           .new(editor: self, handle_teletype: false, completion_proc: complete_proc)
           .read_choice(current_word, indentation)
+
+        ENV["COMP_WORDS"] = nil
+        ENV["COMP_CWORD"] = word_index.to_s
 
         if result
           line[range] = result
@@ -273,6 +281,12 @@ module Hedgehog
         interrupt
       end
 
+      def words
+        words = line.text.split(Hedgehog::Command::UNESCAPED_WORD_REGEX)
+        words << "" if line.text.end_with?(" ")
+        words
+      end
+
       # The word that the cursor is on and the character it starts on.
       #
       # For example
@@ -281,24 +295,22 @@ module Hedgehog
       #          ^
       # would return ["world", 6..10]
       #
-      def current_word_and_range
-        words = line.text.split(Hedgehog::Command::UNESCAPED_WORD_REGEX)
-
+      def current_word_and_range_and_index
         iterated_chars = 0
         this_is_the_word = false
-        words.each do |word|
+        words.each.with_index do |word, index|
           word_started_on = iterated_chars
           word.each_char do |char|
             this_is_the_word = true if iterated_chars == line.cursor_index - 1
             iterated_chars = iterated_chars + 1
           end
           word_ended_on = iterated_chars - 1
-          return [word, word_started_on..word_ended_on] if this_is_the_word
+          return [word, word_started_on..word_ended_on, index] if this_is_the_word
 
           # For the space character
           iterated_chars = iterated_chars + 1
         end
-        return ["", line.cursor_index..line.cursor_index]
+        return ["", line.cursor_index..line.cursor_index, words.count]
       end
 
       # TODO: spec

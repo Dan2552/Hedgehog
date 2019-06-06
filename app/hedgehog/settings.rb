@@ -20,5 +20,6 @@ module Hedgehog
     attr_accessor :disable_interaction
 
     attr_accessor :disable_prompt_execution_warning
+    attr_accessor :use_homebrew_bash_completions
   end
 end

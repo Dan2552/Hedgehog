@@ -14,7 +14,7 @@ module Hedgehog
 
       # The default proc is simply autocompleting for a filepath.
       #
-      DEFAULT_PROC = proc { |input|
+      FILEPATH_PROC = proc { |input|
         if input == "~"
           ["~/"]
         elsif input == "."
@@ -35,8 +35,76 @@ module Hedgehog
         end
       }
 
+      # Note: when calling this, the proc expects the following ENV vars are
+      # already set:
+      #
+      # the line as an array
+      # COMP_WORDS
+      #
+      # the index (in COMP_WORDS that needs autocompleting)
+      # COMP_CWORD
+      #
+      # the line as a string
+      # COMP_LINE
+      #
+      # cursor index
+      # COMP_POINT
+      #
+      HOMEBREW_BASH_COMPLETIONS = proc { |input|
+        homebrew_snippet = <<-BASH
+          # This snippet is the same snippet homebrew recommends using for
+          # completion
+          #
+          HOMEBREW_PREFIX=$(brew --prefix)
+          if type brew &>/dev/null; then
+            for COMPLETION in "$HOMEBREW_PREFIX"/etc/bash_completion.d/*
+            do
+              [[ -f $COMPLETION ]] && source "$COMPLETION"
+            done
+            if [[ -f ${HOMEBREW_PREFIX}/etc/profile.d/bash_completion.sh ]];
+            then
+              source "${HOMEBREW_PREFIX}/etc/profile.d/bash_completion.sh"
+            fi
+          fi
+        BASH
+
+        completion_snippet = <<-BASH
+          # We have to do a conversion here because ENV vars outside of bash
+          # don't actually support bash arrays
+          #
+          COMP_WORDS=#{ENV["COMP_WORDS"]}
+
+          completion=$(complete -p "${COMP_WORDS[0]}" 2>/dev/null | awk '{print $(NF-1)}')
+
+          # escape if there's no completion
+          [[ -n $completion ]] || exit 0
+
+          "$completion"
+
+          printf '%s\n' "${COMPREPLY[@]}"
+        BASH
+
+        cmd = ["bash", "-c", "#{homebrew_snippet}\n#{completion_snippet}"]
+        result = IO.popen(cmd, 'r+') do |io|
+          io.close_write
+          io.read
+        end
+
+        result.split("\n").map(&:strip)
+      }
+
       PATH_BINARY_AND_FILEPATHS_PROC = proc { |input|
-        PATH_BINARY_PROC.call(input) + DEFAULT_PROC.call(input)
+        PATH_BINARY_PROC.call(input) + FILEPATH_PROC.call(input)
+      }
+
+      BASH_AND_FILEPATHS_PROC = proc { |input|
+        suggestions = []
+
+        if Hedgehog::Settings.shared_instance.use_homebrew_bash_completions
+          suggestions += HOMEBREW_BASH_COMPLETIONS.call(input)
+        end
+
+        suggestions += FILEPATH_PROC.call(input)
       }
 
       def initialize(editor: nil, handle_teletype: true, completion_proc: nil)
@@ -46,7 +114,7 @@ module Hedgehog
         @selected_row = 0
         @previous_draw_amount_of_lines = 0
         @spacing = 0
-        @completion_proc = completion_proc || DEFAULT_PROC
+        @completion_proc = completion_proc || FILEPATH_PROC
       end
 
       # Renders an interactive list of choices.
