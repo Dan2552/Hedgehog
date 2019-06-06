@@ -260,13 +260,17 @@ module Hedgehog
         #
         ENV["COMP_WORDS"] = "(" + words.map { |w| "'#{w}'" }.join(" ") + ")"
         ENV["COMP_CWORD"] = word_index.to_s
+        ENV["COMP_LINE"] = line.text
+        ENV["COMP_POINT"] = line.cursor_index.to_s
 
         result = Hedgehog::Input::Choice
           .new(editor: self, handle_teletype: false, completion_proc: complete_proc)
           .read_choice(current_word, indentation)
 
         ENV["COMP_WORDS"] = nil
-        ENV["COMP_CWORD"] = word_index.to_s
+        ENV["COMP_CWORD"] = nil
+        ENV["COMP_LINE"] = nil
+        ENV["COMP_POINT"] = nil
 
         if result
           line[range] = result
