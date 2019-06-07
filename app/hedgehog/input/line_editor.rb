@@ -237,7 +237,10 @@ module Hedgehog
       end
 
       def interrupt
-        return unless line.text.present?
+        unless line.text.present?
+          redraw(without_suffix: true)
+          return
+        end
 
         line.cursor_index = line.visible_length
         redraw(without_suffix: true)
