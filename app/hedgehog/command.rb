@@ -35,7 +35,7 @@ module Hedgehog
     end
 
     def initialize(command = "")
-      @original = command
+      @original = command.lstrip
       work_it_out
     end
 
