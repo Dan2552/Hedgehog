@@ -184,7 +184,7 @@ module Hedgehog
         return :finish unless Hedgehog::Command.new(visible_text).incomplete?
         line.insert(line.cursor_index, "\n")
         line.cursor_index = line.cursor_index + 1
-        redraw(without_suffix: true)
+        redraw
       end
 
       def go_left
