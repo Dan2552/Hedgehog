@@ -73,7 +73,8 @@ module Hedgehog
 
     def incomplete?
       last_line_has_backslash_at_end? ||
-        (binary_path.present? && invalid_bash_command?)
+        (binary_path.present? && invalid_bash_command?) ||
+        (!binary_path.present? && invalid_ruby_command?)
     end
 
     def env_vars
@@ -135,6 +136,19 @@ module Hedgehog
           io.read
         end
 
+        result = $?.exitstatus != 0
+      end
+
+      result
+    end
+
+    def invalid_ruby_command?
+      result = nil
+
+      Hedgehog::Process.retain_status_values do
+        IO.popen('ruby -c', 'w', out: File::NULL, err: File::NULL) do |io|
+          io << original
+        end
         result = $?.exitstatus != 0
       end
 
