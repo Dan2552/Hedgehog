@@ -72,7 +72,8 @@ module Hedgehog
     end
 
     def incomplete?
-      last_line_has_backslash_at_end?
+      last_line_has_backslash_at_end? ||
+        (binary_path.present? && invalid_bash_command?)
     end
 
     def env_vars
@@ -122,6 +123,22 @@ module Hedgehog
       last_line = original.split("\n").compact.last
       return false if last_line.nil?
       last_line.match(/\\\s*$/) != nil
+    end
+
+    def invalid_bash_command?
+      result = nil
+
+      Hedgehog::Process.retain_status_values do
+        cmd = ["bash", "-c", "-n", with_binary_path]
+        result = IO.popen(cmd, 'r+', err: File::NULL) do |io|
+          io.close_write
+          io.read
+        end
+
+        result = $?.exitstatus != 0
+      end
+
+      result
     end
   end
 end
