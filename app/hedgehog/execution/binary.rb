@@ -19,7 +19,7 @@ module Hedgehog
 
         master, slave = PTY.open
 
-        pid = ::Process.spawn(to_execute, :in => STDIN, [:out, :err] => slave)
+        pid = ::Process.spawn(shared_variables, to_execute, :in => STDIN, [:out, :err] => slave)
         slave.close
         master.winsize = $stdout.winsize
         Signal.trap(:WINCH) { master.winsize = $stdout.winsize }
@@ -41,6 +41,71 @@ module Hedgehog
           .local_variable_set(:_, output)
       ensure
         ::Process.wait rescue SystemCallError
+      end
+
+      private
+
+      DEFAULT_GLOBAL_VARIABLES = [
+        :$LOAD_PATH,
+        :$",
+        :$LOADED_FEATURES,
+        :$-I,
+        :$-p,
+        :$-l,
+        :$-a,
+        :$binding,
+        :$@,
+        :$!,
+        :$stdin,
+        :$stdout,
+        :$stderr,
+        :$>,
+        :$<,
+        :$.,
+        :$FILENAME,
+        :$-i,
+        :$*,
+        :$SAFE,
+        :$_,
+        :$~,
+        :$$,
+        :$?,
+        :$;,
+        :$-F,
+        :$&,
+        :$`,
+        :$',
+        :$=,
+        :$KCODE,
+        :$+,
+        :$-K,
+        :$,,
+        :$/,
+        :$-0,
+        :$\,
+        :$VERBOSE,
+        :$-v,
+        :$-w,
+        :$-W,
+        :$DEBUG,
+        :$-d,
+        :$0,
+        :$PROGRAM_NAME,
+        :$:
+      ]
+
+      def shared_variables
+        vars = global_variables - DEFAULT_GLOBAL_VARIABLES
+        values = vars.map { |x| eval(x.to_s).to_s }
+
+        shared_variables = {}
+        vars.each.with_index do |var, index|
+          var_name = var.to_s.sub("$", "")
+          str_value = values[index]
+          shared_variables[var_name] = str_value
+        end
+
+        shared_variables
       end
     end
   end
