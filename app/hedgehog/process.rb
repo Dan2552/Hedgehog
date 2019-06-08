@@ -1,8 +1,6 @@
 require 'rspec/mocks/standalone'
 module Hedgehog
   module Process
-    extend RSpec::Mocks::ExampleMethods
-
     module_function
 
     # This method can be used to spawn subprocesses without affecting the `#pid`
@@ -19,26 +17,18 @@ module Hedgehog
         return if $? == nil
 
         if previous_status
-          allow($?)
-            .to receive(:pid)
-            .and_return(previous_status.pid)
-          allow($?)
-            .to receive(:exitstatus)
-            .and_return(previous_status.exitstatus)
-          allow($?)
-            .to receive(:inspect)
-            .and_return(previous_status.inspect)
+          pid = previous_status.pid
+          exitstatus = previous_status.exitstatus
+          inspect_value = previous_status.inspect
         else
-          allow($?)
-            .to receive(:pid)
-            .and_return(nil)
-          allow($?)
-            .to receive(:exitstatus)
-            .and_return(nil)
-          allow($?)
-            .to receive(:inspect)
-            .and_return("#<Process::Status: no process>")
+          pid = nil
+          exitstatus = nil
+          inspect_value = "#<Process::Status: no process>"
         end
+
+        $?.define_singleton_method(:pid, proc { pid })
+        $?.define_singleton_method(:exitstatus, proc { exitstatus })
+        $?.define_singleton_method(:inspect, proc { inspect_value })
       end
     end
   end

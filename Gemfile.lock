@@ -40,7 +40,6 @@ DEPENDENCIES
   activesupport
   pry
   rspec
-  rspec-mocks
 
 BUNDLED WITH
    1.17.3
