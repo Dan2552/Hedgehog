@@ -19,18 +19,18 @@ module Hedgehog
 
         master, slave = PTY.open
 
-        pid = Process.spawn(to_execute, :in => STDIN, [:out, :err] => slave)
+        pid = ::Process.spawn(to_execute, :in => STDIN, [:out, :err] => slave)
         slave.close
         master.winsize = $stdout.winsize
         Signal.trap(:WINCH) { master.winsize = $stdout.winsize }
-        Signal.trap(:SIGINT) { Process.kill("INT", pid) }
+        Signal.trap(:SIGINT) { ::Process.kill("INT", pid) }
 
         master.each_char do |char|
           STDOUT.print char
           output.concat(char)
         end
 
-        Process.wait(pid)
+        ::Process.wait(pid)
         master.close
 
         print "⏎\r\n" unless output.end_with?("\r\n") || output.empty?
@@ -40,7 +40,7 @@ module Hedgehog
           ._binding
           .local_variable_set(:_, output)
       ensure
-        Process.wait rescue SystemCallError
+        ::Process.wait rescue SystemCallError
       end
     end
   end
