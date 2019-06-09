@@ -19,6 +19,9 @@ module Hedgehog
 
         master, slave = PTY.open
 
+        # IO#raw! is usable to disable newline conversions
+        slave.raw!
+
         pid = ::Process.spawn(shared_variables, to_execute, :in => STDIN, [:out, :err] => slave)
         slave.close
         master.winsize = $stdout.winsize
@@ -33,7 +36,7 @@ module Hedgehog
         ::Process.wait(pid)
         master.close
 
-        print "⏎\r\n" unless output.end_with?("\r\n") || output.empty?
+        print "⏎\n" unless output.end_with?("\n") || output.empty?
 
         Hedgehog::Execution::Ruby::Binding
           .shared_instance
