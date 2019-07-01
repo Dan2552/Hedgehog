@@ -14,7 +14,7 @@ module Hedgehog
 
     class Arguments
       def initialize(array)
-        @array = array
+        @array = array || []
       end
 
       def to_s
@@ -90,6 +90,7 @@ module Hedgehog
     # TEST=test ruby -e "puts ENV['TEST']"
     # bash -c "echo test"
     # /bin/bash -c "echo test"
+    # run("identity login abc def")
     def work_it_out
       @binary_name = nil
       @binary_path = nil

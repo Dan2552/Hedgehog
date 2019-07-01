@@ -95,7 +95,6 @@ module Hedgehog
         Terminal.clear_screen_from_cursor
 
         print(prompt)
-        prompt_length = StringExtensions.without_color(prompt).length
 
         text_to_render = line.text.gsub("\n", "\n\e[0G")
 
