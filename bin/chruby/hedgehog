@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 
 script_dir=$( cd "$( dirname "$0" )" && pwd )
-app_dir=$script_dir/..
+app_dir=$script_dir/../..
 source /usr/local/share/chruby/chruby.sh
 chruby 2.6.3
 BUNDLE_GEMFILE=$app_dir/Gemfile bundle exec ruby $app_dir/bin/hedgehog
