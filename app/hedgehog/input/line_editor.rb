@@ -264,9 +264,12 @@ module Hedgehog
         ENV["COMP_CWORD"] = word_index.to_s
         ENV["COMP_LINE"] = line.text
         ENV["COMP_POINT"] = line.cursor_index.to_s
-
         result = Hedgehog::Input::Choice
-          .new(editor: self, handle_teletype: false, completion_proc: complete_proc)
+          .new(
+            editor: self,
+            handle_teletype: false,
+            completion_proc: complete_proc
+          )
           .read_choice(current_word, indentation)
 
         ENV["COMP_WORDS"] = nil
@@ -363,7 +366,7 @@ module Hedgehog
 
       def reset_history_state
         @history_matching = nil
-        input_history.reset_index!
+        input_history&.reset_index!
       end
 
       def visible_text
@@ -372,7 +375,7 @@ module Hedgehog
 
       def auto_suggest
         return line.suffix = nil unless line.text.present?
-        suggestion = input_history.suggestion_for(line.text)
+        suggestion = input_history&.suggestion_for(line.text)
         return line.suffix = nil unless suggestion.present?
 
         line.suffix = suggestion.sub(line.text, "").rstrip.presence

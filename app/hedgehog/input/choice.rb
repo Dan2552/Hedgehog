@@ -102,7 +102,9 @@ module Hedgehog
       }
 
       PATH_BINARY_AND_FILEPATHS_PROC = proc { |input|
-        PATH_BINARY_PROC.call(input) + FILEPATH_PROC.call(input) + RUBY_COMPLETIONS.call(input)
+        PATH_BINARY_PROC.call(input) +
+        FILEPATH_PROC.call(input) +
+        RUBY_COMPLETIONS.call(input)
       }
 
       BASH_AND_FILEPATHS_PROC = proc { |input|
@@ -112,7 +114,9 @@ module Hedgehog
           suggestions += HOMEBREW_BASH_COMPLETIONS.call(input)
         end
 
-        suggestions += FILEPATH_PROC.call(input) + RUBY_COMPLETIONS.call(input)
+        suggestions +=
+          FILEPATH_PROC.call(input) +
+          RUBY_COMPLETIONS.call(input)
       }
 
       def initialize(editor: nil, handle_teletype: true, completion_proc: nil)

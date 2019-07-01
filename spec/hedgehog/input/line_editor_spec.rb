@@ -122,7 +122,7 @@ RSpec.describe Hedgehog::Input::LineEditor do
         it "makes a Choice with binary proc" do
           instance = double
 
-          expected_proc = Hedgehog::Input::Choice::PATH_BINARY_PROC
+          expected_proc = Hedgehog::Input::Choice::PATH_BINARY_AND_FILEPATHS_PROC
 
           expect(expected_proc)
             .to receive(:call)
@@ -139,7 +139,7 @@ RSpec.describe Hedgehog::Input::LineEditor do
         it "makes a Choice with binary proc" do
           instance = double
 
-          expected_proc = Hedgehog::Input::Choice::PATH_BINARY_PROC
+          expected_proc = Hedgehog::Input::Choice::PATH_BINARY_AND_FILEPATHS_PROC
 
           expect(expected_proc)
             .to receive(:call)
@@ -158,7 +158,11 @@ RSpec.describe Hedgehog::Input::LineEditor do
 
           expect(Hedgehog::Input::Choice)
             .to receive(:new)
-            .with(editor: described_instance, handle_teletype: false, completion_proc: nil)
+            .with(
+              editor: described_instance,
+              handle_teletype: false,
+              completion_proc: anything
+            )
             .and_return(instance)
 
           expect(instance)
@@ -179,7 +183,11 @@ RSpec.describe Hedgehog::Input::LineEditor do
 
           expect(Hedgehog::Input::Choice)
             .to receive(:new)
-            .with(editor: described_instance, handle_teletype: false, completion_proc: nil)
+            .with(
+              editor: described_instance,
+              handle_teletype: false,
+              completion_proc: anything
+            )
             .and_return(instance)
 
           expect(instance)
@@ -200,7 +208,11 @@ RSpec.describe Hedgehog::Input::LineEditor do
 
           expect(Hedgehog::Input::Choice)
             .to receive(:new)
-            .with(editor: described_instance, handle_teletype: false, completion_proc: nil)
+            .with(
+              editor: described_instance,
+              handle_teletype: false,
+              completion_proc: anything
+            )
             .and_return(instance)
 
           expect(instance)

@@ -31,8 +31,12 @@ describe Hedgehog::Execution::Binary do
     it "spawns a process with with_binary_path" do
       expect(Process)
         .to receive(:spawn)
-        .with("$(exit 0); script -q -t 0 /dev/null " + command.with_binary_path,
-              anything)
+        .with(
+          instance_of(Hash),
+          "$(exit 0); " + command.with_binary_path,
+          in: STDIN,
+          [:out, :err] => instance_of(File)
+        )
 
       subject
     end
@@ -45,8 +49,12 @@ describe Hedgehog::Execution::Binary do
       it "spawns a process with that exit code" do
         expect(Process)
           .to receive(:spawn)
-          .with("$(exit 123); script -q -t 0 /dev/null " + command.with_binary_path,
-                anything)
+          .with(
+            anything,
+            "$(exit 123); " + command.with_binary_path,
+            in: anything,
+            [:out, :err] => anything
+          )
 
         subject
       end
