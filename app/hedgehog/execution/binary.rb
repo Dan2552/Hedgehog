@@ -1,3 +1,6 @@
+require 'pty'
+require 'io/console'
+
 module Hedgehog
   module Execution
     class Binary
@@ -10,23 +13,22 @@ module Hedgehog
         #
         # e.g `$(exit 12); echo $?` will print 12
         set_previous_status = "$(exit #{$?&.exitstatus || 0}); "
-
         to_execute = set_previous_status + command.with_binary_path
 
         output = ""
-        require 'pty'
-        require 'io/console'
 
         master, slave = PTY.open
 
-        # IO#raw! is usable to disable newline conversions
-        slave.raw!
+        IO.console.raw!
 
-        pid = ::Process.spawn(shared_variables, to_execute, :in => STDIN, [:out, :err] => slave)
+        input_thread = nil
+        pid = ::Process.spawn(shared_variables, to_execute, :in => slave, [:out, :err] => slave)
         slave.close
         master.winsize = $stdout.winsize
         Signal.trap(:WINCH) { master.winsize = $stdout.winsize }
         Signal.trap(:SIGINT) { ::Process.kill("INT", pid) }
+
+        input_thread = Thread.new { IO.copy_stream(STDIN, master) }
 
         master.each_char do |char|
           STDOUT.print char
@@ -34,7 +36,9 @@ module Hedgehog
         end
 
         ::Process.wait(pid)
+        IO.console.cooked!
         master.close
+        input_thread.kill if input_thread
 
         print "⏎\n" unless output.end_with?("\n") || output.empty?
 
