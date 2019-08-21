@@ -16,29 +16,24 @@ module Hedgehog
         to_execute = set_previous_status + command.with_binary_path
 
         output = ""
-
-        master, slave = PTY.open
-
+        input_thread = nil
         IO.console.raw!
 
-        input_thread = nil
-        pid = ::Process.spawn(shared_variables, to_execute, :in => slave, [:out, :err] => slave)
-        slave.close
-        master.winsize = $stdout.winsize
-        Signal.trap(:WINCH) { master.winsize = $stdout.winsize }
-        Signal.trap(:SIGINT) { ::Process.kill("INT", pid) }
+        PTY.spawn(to_execute) do |read, write, pid|
+          write.winsize = STDOUT.winsize
+          Signal.trap(:WINCH) { write.winsize = STDOUT.winsize }
+          input_thread = Thread.new { IO.copy_stream(STDIN, write) }
 
-        input_thread = Thread.new { IO.copy_stream(STDIN, master) }
+          read.each_char do |char|
+            STDOUT.print char
+            output.concat(char)
+          end
 
-        master.each_char do |char|
-          STDOUT.print char
-          output.concat(char)
+          ::Process.wait(pid)
         end
-
-        ::Process.wait(pid)
-        IO.console.cooked!
-        master.close
         input_thread.kill if input_thread
+
+        IO.console.cooked!
 
         print "⏎\n" unless output.end_with?("\n") || output.empty?
 
