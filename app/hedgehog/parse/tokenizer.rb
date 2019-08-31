@@ -13,11 +13,6 @@ module Hedgehog
     # Converts a text into a list of tokens for parsing.
     #
     class Tokens
-      ALL = [
-        WORD_STARTING_WITH_LETTER = 0,
-
-      ]
-
       def initialize(text)
         @text = text.strip
         @tokens = []
