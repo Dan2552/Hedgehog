@@ -62,6 +62,7 @@ module Hedgehog
         puts "  handling end"
 
         add_token(current_state, current_word) if current_state != :empty
+        add_token(:end, "")
       end
 
       SINGLE_CHAR_TOKENS = {

@@ -1,7 +1,7 @@
 RSpec.describe Hedgehog::Parse::Tokens do
   let(:described_instance) { described_class.new(text) }
 
-  fdescribe "#tokenize" do
+  describe "#tokenize" do
     let(:text) { "" }
     subject { described_instance.tokenize }
 
