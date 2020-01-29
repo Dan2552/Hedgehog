@@ -1,9 +1,10 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 script_dir=$( cd "$( dirname "$0" )" && pwd )
 app_dir=$script_dir/../..
 source /usr/local/share/chruby/chruby.sh
+
+cd $app_dir
+
 chruby 2.6.5
-export BUNDLE_GEMFILE=$app_dir/Gemfile
-cmd=$(which bundle)
-exec $cmd exec ruby $app_dir/bin/hedgehog
+bundle install
