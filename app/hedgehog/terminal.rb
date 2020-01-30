@@ -60,5 +60,27 @@ module Hedgehog
       return unless columns > 0
       print "\e[#{columns}D"
     end
+
+    # The macOS Terminal app specifically uses this to determine what to open
+    # when a new tab is spawned.
+    #
+    # Some other terminal emulators (e.g. iTerm) actually use the process' cwd
+    # value instead, so don't need this.
+    #
+    # This is basically a re-implementation of `update_terminal_cwd` commonly
+    # defined in `/etc/bashrc_Apple_Terminal`.
+    #
+    def self.notify_current_working_directory
+      pwd = Dir.pwd
+      url_path = pwd.each_char.map do |char|
+        if char =~ /[\/._~A-Za-z0-9-]/
+          char
+        else
+          ERB::Util.url_encode(char)
+        end
+      end.join
+
+      print "\e]7;file://#{ENV['HOSTNAME']}#{url_path}\a"
+    end
   end
 end

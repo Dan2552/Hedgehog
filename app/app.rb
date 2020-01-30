@@ -15,6 +15,7 @@ begin
   require 'io/console'
   require 'yaml'
   require 'fileutils'
+  require 'erb'
 
   include Hedgehog::DSL
 

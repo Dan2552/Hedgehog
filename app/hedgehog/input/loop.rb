@@ -3,6 +3,8 @@ module Hedgehog
     class Loop
       def await_user_input
         loop do
+          Terminal.notify_current_working_directory
+
           command_string = editor.readline(get_prompt)
 
           # CMD+D makes nil for some reason
