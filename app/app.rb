@@ -3,8 +3,6 @@
 require_relative "hedgehog/input/preemptive_input"
 input_source = Hedgehog::Input::PreemptiveInput.new
 
-Process.setproctitle("hedgehog")
-
 require_relative "hedgehog/terminal"
 
 begin
