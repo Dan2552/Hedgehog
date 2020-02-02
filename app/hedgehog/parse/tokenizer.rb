@@ -8,6 +8,10 @@ module Hedgehog
 
       attr_reader :type
       attr_reader :text
+
+      def to_s
+        "<Token:#{type}:#{text}>"
+      end
     end
 
     # Converts a text into a list of tokens for parsing.
@@ -27,7 +31,7 @@ module Hedgehog
           handle_char
         end
         handle_end
-        puts "\n\nENDED----------------"
+        puts "ENDED----------------\n\n"
         @tokens
       end
 
