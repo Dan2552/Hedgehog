@@ -19,7 +19,7 @@ RSpec.describe Hedgehog::Parse::Parser do
     end
   end
 
-  fdescribe "#parse" do
+  describe "#parse" do
     let(:tokens) { [] }
     subject { described_instance.parse }
 
@@ -43,48 +43,47 @@ RSpec.describe Hedgehog::Parse::Parser do
         expect(subject.children[0].type).to eq(:command)
 
         expect(subject.structure).to eq({
+          root: [ { command: [:argument] } ]
+        })
+      end
+    end
+
+    fdescribe "command with an argument (e.g. git log)" do
+      let(:tokens) do
+        t(:word_starting_with_letter,
+          :word_starting_with_letter,
+          :end)
+      end
+
+      it "returns the parsed output" do
+        expect(subject.structure).to eq({
           root: [
-            { :command }
+            { command: [ :argument ] }
           ]
         })
       end
     end
 
-    # Need to possibly re-think the structure that gets built. What should
-    # happen if `$(echo echo) hi` is the input. Name of the command can be a
-    # statement. Maybe a lhs and rhs where lhs can be whatever, then rhs can be
-    # arguments.
+    describe "simple environment variable (e.g. a=hello)" do
+      let(:tokens) do
+        t(:word_starting_with_letter,
+          :equals,
+          :word_starting_with_letter,
+          :end)
+      end
 
-    # describe "command with an argument (e.g. git log)" do
-    #   let(:tokens) do
-    #     t(:word_starting_with_letter,
-    #       :word_starting_with_letter,
-    #       :end)
-    #   end
+      it "returns the parsed output" do
+        expect(subject.structure).to eq({
+          root: [
+            { env_var: [ :lhs, :rhs ] }
+          ]
+        })
+      end
+    end
 
-    #   it "returns the parsed output" do
-    #     expect(subject.structure).to eq({
-    #       root: [
-    #         { command: [ :argument ] }
-    #       ]
-    #     })
-    #   end
-    # end
-
-    # describe "environment variable (e.g. a=hello)" do
-    #   let(:tokens) do
-    #     t(:word_starting_with_letter,
-    #       :word_starting_with_letter,
-    #       :end)
-    #   end
-
-    #   it "returns the parsed output" do
-    #     expect(subject.structure).to eq({
-    #       root: [
-    #         { env_var: [ :lhs, :rhs ] }
-    #       ]
-    #     })
-    #   end
-    # end
+    describe "complex environment variable (e.g. a=$(echo hello))" do
+      xit "returns the parsed output" do
+      end
+    end
   end
 end
