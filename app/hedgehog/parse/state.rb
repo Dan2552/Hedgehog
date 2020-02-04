@@ -9,6 +9,10 @@ module Hedgehog
         rewind!
       end
 
+      def to_s
+        "<State>"
+      end
+
       def consume_current_token!
         tokens.delete_at(current_index)
       end
@@ -39,6 +43,15 @@ module Hedgehog
 
       def pop_handler!
         handler_stack.pop
+      end
+
+      # Peek at the upcoming tokens (taking into acconut the current_token's
+      # position).
+      #
+      # - returns: An array of types (symbols)
+      #
+      def peek(count)
+        tokens[current_index..(current_index + (count - 1))].map(&:type)
       end
 
       private

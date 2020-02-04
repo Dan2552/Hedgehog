@@ -11,13 +11,20 @@ module Hedgehog
       end
 
       def structure
-        if children.count > 0
+        if children.count == 0
+          type
+        elsif children.count > 1
           {
             type => children.map(&:structure)
           }
         else
-          type
+          {
+            type => children.first.structure
+          }
         end
+      rescue StandardError
+        puts "Children: #{children}"
+        raise
       end
 
       attr_reader :type

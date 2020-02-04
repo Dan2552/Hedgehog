@@ -9,9 +9,11 @@ RSpec.describe Hedgehog::Parse::Tokens do
       let(:text) { "ls" }
 
       it "returns the tokens" do
-        expect(subject.count).to eq(1)
+        expect(subject.count).to eq(2)
         expect(subject[0].type).to eq(:word_starting_with_letter)
         expect(subject[0].text).to eq("ls")
+        expect(subject[1].type).to eq(:end)
+        expect(subject[1].text).to eq("")
       end
     end
 
@@ -19,7 +21,7 @@ RSpec.describe Hedgehog::Parse::Tokens do
       let(:text) { "  \n  ls  \n " }
 
       it "doesn't count towards extra tokens" do
-        expect(subject.count).to eq(1)
+        expect(subject.count).to eq(2)
         expect(subject[0].type).to eq(:word_starting_with_letter)
         expect(subject[0].text).to eq("ls")
       end
@@ -29,7 +31,7 @@ RSpec.describe Hedgehog::Parse::Tokens do
       let(:text) { "echo hello" }
 
       it "returns the tokens" do
-        expect(subject.count).to eq(3)
+        expect(subject.count).to eq(4)
         expect(subject[0].type).to eq(:word_starting_with_letter)
         expect(subject[0].text).to eq("echo")
 
@@ -45,7 +47,7 @@ RSpec.describe Hedgehog::Parse::Tokens do
       let(:text) { "echo hello world" }
 
       it "returns the tokens" do
-        expect(subject.count).to eq(5)
+        expect(subject.count).to eq(6)
         expect(subject[0].type).to eq(:word_starting_with_letter)
         expect(subject[0].text).to eq("echo")
 
@@ -67,7 +69,7 @@ RSpec.describe Hedgehog::Parse::Tokens do
       let(:text) { "123" }
 
       it "returns the tokens" do
-        expect(subject.count).to eq(1)
+        expect(subject.count).to eq(2)
         expect(subject[0].type).to eq(:number)
         expect(subject[0].text).to eq("123")
       end
@@ -77,7 +79,7 @@ RSpec.describe Hedgehog::Parse::Tokens do
       let(:text) { "abc123" }
 
       it "returns the tokens" do
-        expect(subject.count).to eq(1)
+        expect(subject.count).to eq(2)
         expect(subject[0].type).to eq(:word_starting_with_letter)
         expect(subject[0].text).to eq("abc123")
       end
@@ -87,17 +89,19 @@ RSpec.describe Hedgehog::Parse::Tokens do
       let(:text) { "123abc" }
 
       it "returns the tokens" do
-        expect(subject.count).to eq(1)
+        expect(subject.count).to eq(2)
         expect(subject[0].type).to eq(:word_starting_with_number)
         expect(subject[0].text).to eq("123abc")
       end
     end
 
+    describe "word starting with a number "
+
     describe "equals (like env vars) with numbers as value" do
       let(:text) { "abc=123" }
 
       it "returns the tokens" do
-        expect(subject.count).to eq(3)
+        expect(subject.count).to eq(4)
         expect(subject[0].type).to eq(:word_starting_with_letter)
         expect(subject[0].text).to eq("abc")
 
@@ -113,7 +117,7 @@ RSpec.describe Hedgehog::Parse::Tokens do
       let(:text) { "abc=123a" }
 
       it "returns the tokens" do
-        expect(subject.count).to eq(3)
+        expect(subject.count).to eq(4)
         expect(subject[0].type).to eq(:word_starting_with_letter)
         expect(subject[0].text).to eq("abc")
 
@@ -129,7 +133,7 @@ RSpec.describe Hedgehog::Parse::Tokens do
       let(:text) { "abc=a123" }
 
       it "returns the tokens" do
-        expect(subject.count).to eq(3)
+        expect(subject.count).to eq(4)
         expect(subject[0].type).to eq(:word_starting_with_letter)
         expect(subject[0].text).to eq("abc")
 
@@ -145,7 +149,7 @@ RSpec.describe Hedgehog::Parse::Tokens do
       let(:text) { "abc = 123" }
 
       it "returns the tokens" do
-        expect(subject.count).to eq(5)
+        expect(subject.count).to eq(6)
         expect(subject[0].type).to eq(:word_starting_with_letter)
         expect(subject[0].text).to eq("abc")
 
@@ -167,7 +171,7 @@ RSpec.describe Hedgehog::Parse::Tokens do
       let(:text) { "'hello'" }
 
       it "returns the tokens" do
-        expect(subject.count).to eq(3)
+        expect(subject.count).to eq(4)
 
         expect(subject[0].type).to eq(:single_quote)
         expect(subject[0].text).to eq("'")
@@ -185,7 +189,7 @@ RSpec.describe Hedgehog::Parse::Tokens do
       let(:text) { "\"hello\"" }
 
       it "returns the tokens" do
-        expect(subject.count).to eq(3)
+        expect(subject.count).to eq(4)
 
         expect(subject[0].type).to eq(:double_quote)
         expect(subject[0].text).to eq("\"")
@@ -203,7 +207,7 @@ RSpec.describe Hedgehog::Parse::Tokens do
       let(:text) { "`hello`" }
 
       it "returns the tokens" do
-        expect(subject.count).to eq(3)
+        expect(subject.count).to eq(4)
 
         expect(subject[0].type).to eq(:backtick)
         expect(subject[0].text).to eq("`")
@@ -221,7 +225,7 @@ RSpec.describe Hedgehog::Parse::Tokens do
       let(:text) { "|" }
 
       it "returns the tokens" do
-        expect(subject.count).to eq(1)
+        expect(subject.count).to eq(2)
 
         expect(subject[0].type).to eq(:pipe)
         expect(subject[0].text).to eq("|")

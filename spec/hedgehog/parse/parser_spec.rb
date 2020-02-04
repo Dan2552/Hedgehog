@@ -26,13 +26,13 @@ RSpec.describe Hedgehog::Parse::Parser do
     describe "no end" do
       let(:tokens) { t(:word_starting_with_letter) }
 
-      it "raises an exception" do
+      xit "raises an exception" do
         expect { subject }
           .to raise_error("Expected :end at the end of the token list")
       end
     end
 
-    describe "simplest command (e.g. ls)" do
+    describe "one argument (e.g. ls)" do
       let(:tokens) { t(:word_starting_with_letter, :end) }
 
       it "returns the parsed output" do
@@ -43,23 +43,22 @@ RSpec.describe Hedgehog::Parse::Parser do
         expect(subject.children[0].type).to eq(:command)
 
         expect(subject.structure).to eq({
-          root: [ { command: [:argument] } ]
+          root: { command: :argument }
         })
       end
     end
 
-    fdescribe "command with an argument (e.g. git log)" do
+    describe "simple multiple arguments (e.g. git log)" do
       let(:tokens) do
         t(:word_starting_with_letter,
+          :space,
           :word_starting_with_letter,
           :end)
       end
 
       it "returns the parsed output" do
         expect(subject.structure).to eq({
-          root: [
-            { command: [ :argument ] }
-          ]
+          root: { command: [:argument, :argument] }
         })
       end
     end
@@ -74,9 +73,80 @@ RSpec.describe Hedgehog::Parse::Parser do
 
       it "returns the parsed output" do
         expect(subject.structure).to eq({
-          root: [
-            { env_var: [ :lhs, :rhs ] }
-          ]
+          root: { command: { env_var: [ :lhs, :rhs ] } }
+        })
+      end
+    end
+
+    describe "multiple environment variables (e.g. a=hello b=world)" do
+      let(:tokens) do
+        t(:word_starting_with_letter,
+          :equals,
+          :word_starting_with_letter,
+          :space,
+          :word_starting_with_letter,
+          :equals,
+          :word_starting_with_letter,
+          :end)
+      end
+
+      it "returns the parsed output" do
+        expect(subject.structure).to eq({
+          root: {
+            command: [
+              { env_var: [ :lhs, :rhs ] },
+              { env_var: [ :lhs, :rhs ] }
+            ]
+          }
+        })
+      end
+    end
+
+    describe "empty env var with argument (e.g. a= hello)" do
+      let(:tokens) do
+        t(:word_starting_with_letter,
+          :equals,
+          :word_starting_with_letter,
+          :space,
+          :word_starting_with_letter,
+          :end)
+      end
+
+      it "returns the parsed output" do
+        expect(subject.structure).to eq({
+          root: {
+            command: [
+              { env_var: [ :lhs, :rhs ] },
+              :argument
+            ]
+          }
+        })
+      end
+    end
+
+    describe "command starting with number (e.g. 1hello)" do
+      let(:tokens) do
+        t(:word_starting_with_number,
+          :end)
+      end
+
+      xit "returns the parsed output" do
+        expect(subject.structure).to eq({
+          root: { command: :argument }
+        })
+      end
+    end
+
+    describe "command starting with number with an equals (e.g. 1hello=)" do
+      let(:tokens) do
+        t(:word_starting_with_number,
+          :equals,
+          :end)
+      end
+
+      xit "returns the parsed output" do
+        expect(subject.structure).to eq({
+          root: { command: :argument }
         })
       end
     end

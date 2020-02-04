@@ -2,64 +2,66 @@ module Hedgehog
   module Parse
     class CommandHandler < BaseHandler
       def handle_token
+        case current_token.type
+        when :end
+          return state.pop_handler!
+        when :space
+          return state.consume_current_token!
+        end
+
         log "local_state: #{local_state}"
 
-        case current_token.type
-        when :word_starting_with_letter
-            # arguments << current_token
-            # state.consume_current_token!
-          case local_state
-          when :first
-            state.skip_token!
-            @local_state = :first_word
-          when :first_word
-            raise "Unexpected token :word_starting_with_letter"
-          end
-        when :end
-          case local_state
-          when :first_word
-            state.rewind!
-            arguments << current_token
-            state.consume_current_token!
-            @local_state = :arguments
-          end
-          state.pop_handler!
-        else
-          raise ":( command: #{current_token}"
+        case local_state
+        when :expecting_env_vars
+          handle_expecting_env_vars
+        when :expecting_arguments
+          handle_expecting_arguments
         end
       end
 
       def build_leaves
         command = Leaf.new(:command, current_token)
-        arguments.each do |argument|
-          if argument.is_a?(Token)
-            command.children << Leaf.new(:argument, argument)
-          elsif argument.is_a?(BaseHandler)
-            raise "TODO"
-          else
-            raise "Unexpected"
-          end
+
+        (env_var_handlers + argument_handlers).each do |handler|
+          command.children << handler.build_leaves
         end
+
         command
       end
 
       private
 
-      # * first: Expecting env vars / arguments.
-      # * first_word: Still env vars / arguments. At this point, the next token
-      #   will always decide which.
-      # * arguments: At this point, we're done with env vars.
-      #
+      def handle_expecting_env_vars
+        case state.peek(2)
+        when [:word_starting_with_letter, :word_starting_with_letter],
+             [:word_starting_with_letter, :end],
+             [:word_starting_with_letter, :space]
+          log("identified as arguments")
+          @local_state = :expecting_arguments
+        when [:word_starting_with_letter, :equals]
+          env_var_handlers << spawn(EnvVarHandler)
+        else
+          raise_unexpected
+        end
+      end
+
+      def handle_expecting_arguments
+        argument_handlers << spawn(ArgumentHandler)
+      end
+
+      # * expecting_env_vars: it could be env vars, but it could actually also
+      #   be arguments
+      # * expecting_arguments: env vars are no longer considered
       def local_state
-        @local_state ||= :first
+        @local_state ||= :expecting_env_vars
       end
 
-      def env_vars
-        @env_vars ||= {}
+      def env_var_handlers
+        @env_var_handlers ||= []
       end
 
-      def arguments
-        @arguments ||= []
+      def argument_handlers
+        @argument_handlers ||= []
       end
 
       def named?

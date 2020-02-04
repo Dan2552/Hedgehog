@@ -22,8 +22,8 @@ module Hedgehog
       end
 
       def next
-        log "current handler: #{state.current_handler.class}"
-        log "current_token: #{state.current_token}"
+        log("", "")
+        log("#{state.current_handler.class.to_s.demodulize}: #{state.current_token}", "")
         handle_token
       end
 
@@ -36,13 +36,17 @@ module Hedgehog
       attr_reader :depth
       attr_reader :state
 
-      def spawn_new_handler(type)
+      def spawn(type)
         new_handler = type.new(state, depth + 1)
         state.current_handler = new_handler
       end
 
-      def log(str)
-        puts ("  " * depth) + str
+      def log(str, prefix = "* ")
+        puts(("    " * depth) + prefix + str)
+      end
+
+      def raise_unexpected
+        raise "Unexpected token #{current_token}"
       end
     end
   end

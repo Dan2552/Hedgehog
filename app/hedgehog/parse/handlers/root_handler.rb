@@ -15,7 +15,7 @@ module Hedgehog
           new_command
         when :end
           state.consume_current_token!
-          raise "Unconsumed tokens" unless state.tokens.count == 0
+          raise "Unconsumed tokens: #{state.tokens.map(&:type)}" unless state.tokens.count == 0
         else
           raise ":( handle RootHandler: #{current_token}"
         end
@@ -34,7 +34,7 @@ module Hedgehog
       private
 
       def new_command
-        commands << spawn_new_handler(CommandHandler)
+        commands << spawn(CommandHandler)
       end
 
       # Each command will be a command separated by pipe.
