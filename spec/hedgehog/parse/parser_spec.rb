@@ -130,7 +130,7 @@ RSpec.describe Hedgehog::Parse::Parser do
           :end)
       end
 
-      xit "returns the parsed output" do
+      it "returns the parsed output" do
         expect(subject.structure).to eq({
           root: { command: :argument }
         })
@@ -144,9 +144,9 @@ RSpec.describe Hedgehog::Parse::Parser do
           :end)
       end
 
-      xit "returns the parsed output" do
+      it "returns the parsed output" do
         expect(subject.structure).to eq({
-          root: { command: :argument }
+          root: { command: { argument: [:argument_part, :argument_part] } }
         })
       end
     end
@@ -155,5 +155,15 @@ RSpec.describe Hedgehog::Parse::Parser do
       xit "returns the parsed output" do
       end
     end
+
+    # env var with value in quotes (""/'')
+
+    # arguments in quotes (""/'')
+
+    # > $a=two
+    # bash: one=two: command not found
+
+    # > a=one $a=two
+    # bash: one=two: command not found
   end
 end

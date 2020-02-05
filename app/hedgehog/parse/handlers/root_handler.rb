@@ -11,7 +11,7 @@ module Hedgehog
       # * Command
       def handle_token
         case current_token.type
-        when :word_starting_with_letter # TODO: :word_starting_with_number
+        when :word_starting_with_letter, :word_starting_with_number
           new_command
         when :end
           state.consume_current_token!

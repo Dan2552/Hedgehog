@@ -33,15 +33,11 @@ module Hedgehog
 
       def handle_expecting_env_vars
         case state.peek(2)
-        when [:word_starting_with_letter, :word_starting_with_letter],
-             [:word_starting_with_letter, :end],
-             [:word_starting_with_letter, :space]
-          log("identified as arguments")
-          @local_state = :expecting_arguments
         when [:word_starting_with_letter, :equals]
           env_var_handlers << spawn(EnvVarHandler)
         else
-          raise_unexpected
+          log("identified as arguments")
+          @local_state = :expecting_arguments
         end
       end
 
