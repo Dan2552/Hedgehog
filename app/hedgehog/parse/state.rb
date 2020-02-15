@@ -4,6 +4,7 @@ module Hedgehog
       attr_reader :tokens
 
       def initialize(tokens)
+        raise "Expected :end at the end of the token list" unless tokens.last.type == :end
         @tokens = tokens
         self.current_handler = RootHandler.new(self, 0)
         rewind!

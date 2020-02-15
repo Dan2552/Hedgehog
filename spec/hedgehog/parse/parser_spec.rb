@@ -26,7 +26,7 @@ RSpec.describe Hedgehog::Parse::Parser do
     describe "no end" do
       let(:tokens) { t(:word_starting_with_letter) }
 
-      xit "raises an exception" do
+      it "raises an exception" do
         expect { subject }
           .to raise_error("Expected :end at the end of the token list")
       end
