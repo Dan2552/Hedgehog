@@ -40,7 +40,7 @@ module Hedgehog
 
         PTY.spawn(to_execute) do |read, write, pid|
           write.winsize = STDOUT.winsize
-          Signal.trap(:WINCH) { write.winsize = STDOUT.winsize }
+          Hedgehog::Signal.subscribe(:sigwinch, self) { write.winsize = STDOUT.winsize }
           input_thread = Thread.new { IO.copy_stream(input, write) }
 
           read.each_char do |char|
@@ -62,6 +62,7 @@ module Hedgehog
           ._binding
           .local_variable_set(:_, output)
       ensure
+        Hedgehog::Signal.unsubscribe(:sigwinch, self)
         ::Process.wait rescue SystemCallError
       end
 

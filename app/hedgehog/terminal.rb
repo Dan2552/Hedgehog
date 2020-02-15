@@ -7,16 +7,16 @@ module Hedgehog
     # Input like directional keys are silenced so they can be used to control
     # the input editor.
     #
-    def self.silence!
+    def self.raw!
       # Specifically does _not_ use `IO.console.raw!` because it apparently
       # gobbles up all STDIN that's currently in queue. Which is no good,
       # because we want characters typed before Hedgehog loads.
       system("stty raw -echo")
     end
 
-    # Restores silenced state. See `silence!` for more info.
+    # Restores silenced state. See `raw!` for more info.
     #
-    def self.restore!
+    def self.cooked!
       IO.console.cooked!
     end
 

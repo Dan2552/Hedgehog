@@ -22,7 +22,7 @@ module Hedgehog
         elsif input.empty?
           ["./", "~/", "/"]
         else
-          results = Readline::FILENAME_COMPLETION_PROC.call(input) || []
+          results = ::Readline::FILENAME_COMPLETION_PROC.call(input) || []
           results.map! do |result|
             directory = File.directory?(result.gsub(/^~/, "#{ENV["HOME"]}"))
 
@@ -145,7 +145,7 @@ module Hedgehog
         return nil if results_to_show == 0
 
         Terminal.hide_cursor
-        Hedgehog::Terminal.silence! if handle_teletype
+        Hedgehog::Terminal.raw! if handle_teletype
         draw
         loop do
           result = handle_character
@@ -157,7 +157,7 @@ module Hedgehog
         end
       ensure
         Terminal.show_cursor
-        Hedgehog::Terminal.restore! if handle_teletype
+        Hedgehog::Terminal.cooked! if handle_teletype
       end
 
       private

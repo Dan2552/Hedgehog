@@ -1,5 +1,6 @@
 module Hedgehog
   module Input
+    class EndOfFile < StandardError; end
     # - Prints prompt
     # - Prints line
     # - Manipulates line with user input
@@ -11,40 +12,31 @@ module Hedgehog
       #
       attr_accessor :auto_complete_input
 
-      def initialize(handle_teletype: true)
-        @handle_teletype = handle_teletype
+      def initialize(prompt, multiline_handler)
+        @prompt = prompt
+        @multiline_handler = multiline_handler
       end
 
-      # Similarly to the readline library, the aim is to get a line of text.
-      #
-      # - returns: String, being the line
-      #
-      def readline(prompt)
-        Signal.trap('SIGWINCH', method(:size_changed))
-        Hedgehog::Terminal.silence! if handle_teletype
-        @prompt = prompt
+      def edit_line
+        Hedgehog::Signal.subscribe(:sigwinch, self) { size_changed }
+
         redraw
         loop do
           result = handle_character
-          return nil if result == :cancel
+
           if result == :finish
             line.cursor_index = line.visible_length
             redraw(without_suffix: true)
-            Hedgehog::Terminal.restore!
-            puts ""
             return visible_text
           end
         end
       ensure
-        Hedgehog::Terminal.restore! if handle_teletype
-        @line = nil
-        @last_cursor_rows = nil
-        reset_history_state
+        Hedgehog::Signal.unsubscribe(:sigwinch, self)
       end
 
       private
 
-      def size_changed(_)
+      def size_changed
         return if @line.nil?
 
         @line.terminal_did_resize(
@@ -54,12 +46,8 @@ module Hedgehog
         redraw
       end
 
-      # Whether teletype silencing should be managed by this class. This should
-      # only be disabled if called from another input source (e.g. Editor).
-      #
-      attr_reader :handle_teletype
-
       attr_reader :prompt
+      attr_reader :multiline_handler
 
       def colored_suffix
         return unless line.suffix.present?
@@ -159,7 +147,7 @@ module Hedgehog
         return go_right if char.is?(:right)
         return go_left_by_word if char.is?(:option_left)
         return go_right_by_word if char.is?(:option_right)
-        return :cancel if char.is?(:ctrl_d)
+        return end_of_file if char.is?(:ctrl_d)
         return interrupt if char.is?(:ctrl_c)
         return backspace if char.is?(:backspace)
         return delete if char.is?(:delete)
@@ -183,10 +171,13 @@ module Hedgehog
       end
 
       def enter
-        return :finish unless Hedgehog::Command.new(visible_text).incomplete?
-        line.insert(line.cursor_index, "\n")
-        line.cursor_index = line.cursor_index + 1
-        redraw
+        if multiline_handler && multiline_handler.should_newline?(visible_text)
+          line.insert(line.cursor_index, "\n")
+          line.cursor_index = line.cursor_index + 1
+          redraw
+        else
+          :finish
+        end
       end
 
       def go_left
@@ -236,6 +227,10 @@ module Hedgehog
         line[line.cursor_index] = ''
         auto_suggest
         redraw
+      end
+
+      def end_of_file
+        raise EndOfFile
       end
 
       def interrupt

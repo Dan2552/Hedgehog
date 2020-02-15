@@ -59,6 +59,6 @@ begin
     end
   end
 ensure
-  Hedgehog::Terminal.restore!
+  Hedgehog::Terminal.cooked!
   input_source.close
 end

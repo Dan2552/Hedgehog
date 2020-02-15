@@ -2,39 +2,33 @@ module Hedgehog
   module Input
     class Loop
       def await_user_input
-        loop do
+        multiline_handler = MultilineHandler.new
+        while line = Readline.readline(get_prompt, true, multiline_handler: multiline_handler)
           Terminal.notify_current_working_directory
-
-          command_string = editor.readline(get_prompt)
-
-          # CMD+D makes nil for some reason
-          return if command_string.nil?
-
-          runner.run(command_string)
+          runner.run(line)
         end
       rescue Interrupt
-        puts ""
-        self.class.new.await_user_input
+        puts
+        retry
       end
 
       private
 
-      def editor
-        @editor ||= Hedgehog::Input::LineEditor.new
-      end
+      FALLBACK_PROMPT = "> "
 
       def get_prompt
-        check_exit_status = $?
-
         Hedgehog::Process.retain_status_values do
           Hedgehog::State.shared_instance.prompt.call
-        end || "> "
+        end || FALLBACK_PROMPT
+      rescue Interrupt
+        retry
       rescue
-        "> "
+        puts "Failed to execute the prompt block. Check your Hedgehog configuration file. You can check the output by running `prompt.call`."
+        FALLBACK_PROMPT
       end
 
       def runner
-        @runner ||= Hedgehog::Execution::Runner.new(is_history_enabled: true)
+        @runner ||= Hedgehog::Execution::Runner.new
       end
     end
   end

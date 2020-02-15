@@ -65,35 +65,5 @@ describe Hedgehog::Input::Loop do
         subject
       end
     end
-
-    context "when LineEditor raises Interrupt" do
-      let(:second_instance) { double }
-
-      before do
-        allow(editor)
-          .to receive(:readline)
-          .and_raise(Interrupt)
-
-        expect(Hedgehog::Input::Loop)
-          .to receive(:new)
-          .and_return(described_instance, second_instance)
-
-        allow(second_instance)
-          .to receive(:await_user_input)
-      end
-
-      it "prints a newline" do
-        expect { subject }
-          .to output(/\n/)
-          .to_stdout
-      end
-
-      it "starts a new instance of loop to reset state" do
-        expect(second_instance)
-          .to receive(:await_user_input)
-
-        subject
-      end
-    end
   end
 end
