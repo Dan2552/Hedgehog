@@ -27,6 +27,22 @@ RSpec.describe Hedgehog::Parse::Tokens do
       end
     end
 
+    describe "commands split by newlines" do
+      let(:text) { "ls\nls" }
+
+      it "returns the tokens" do
+        expect(subject.count).to eq(4)
+        expect(subject[0].type).to eq(:word_starting_with_letter)
+        expect(subject[0].text).to eq("ls")
+        expect(subject[1].type).to eq(:newline)
+        expect(subject[1].text).to eq("\n")
+        expect(subject[2].type).to eq(:word_starting_with_letter)
+        expect(subject[2].text).to eq("ls")
+        expect(subject[3].type).to eq(:end)
+        expect(subject[3].text).to eq("")
+      end
+    end
+
     describe "a command with a single argument" do
       let(:text) { "echo hello" }
 

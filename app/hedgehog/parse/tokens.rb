@@ -75,7 +75,8 @@ module Hedgehog
         "'" => :single_quote,
         "`" => :backtick,
         "\"" => :double_quote,
-        "|" => :pipe
+        "|" => :pipe,
+        "\n" => :newline
       }
 
       def handle_empty

@@ -22,7 +22,6 @@ module Hedgehog
       end
 
       def next
-        log("", "")
         log("#{state.current_handler.class.to_s.demodulize}: #{state.current_token}", "")
         handle_token
       end
@@ -47,6 +46,13 @@ module Hedgehog
 
       def raise_unexpected
         raise "Unexpected token #{current_token}"
+      end
+
+      def consume_tokens_until(tokens = [], &blk)
+        return tokens if blk.call == true
+        log("consuming #{current_token}")
+        tokens << state.consume_current_token!
+        consume_tokens_until(tokens, &blk)
       end
     end
   end

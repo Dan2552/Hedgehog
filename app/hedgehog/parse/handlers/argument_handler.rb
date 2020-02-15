@@ -3,21 +3,36 @@ module Hedgehog
     class ArgumentHandler < BaseHandler
       def handle_token
         case current_token.type
-        when :space, :end
+        when :space, :end, :newline
           state.pop_handler!
+        when :single_quote, :double_quote
+          parts << spawn(StringHandler)
         else
-          @argument_tokens = consume_tokens_until_space_or_end
-          log("consumed #{@argument_tokens.count} tokens")
+          consumed_tokens = consume_tokens_until do
+            [
+              :space,
+              :end,
+              :single_quote,
+              :double_quote,
+              :newline
+            ].include?(current_token.type)
+          end
+          log("consumed #{consumed_tokens.count} tokens")
+          consumed_tokens.each { |token| parts << token }
         end
       end
 
       def build_leaves
-        if @argument_tokens.count == 1
-          Leaf.new(:argument, @argument_tokens.first)
+        if parts.count == 1 && parts.first.is_a?(Token)
+          Leaf.new(:argument, parts.first)
         else
           args = Leaf.new(:argument, nil)
-          @argument_tokens.each do |token|
-            args.children << Leaf.new(:argument_part, token)
+          parts.each do |part|
+            if part.is_a?(Token)
+              args.children << Leaf.new(:argument_part, part)
+            else
+              args.children << part.build_leaves
+            end
           end
           args
         end
@@ -25,11 +40,8 @@ module Hedgehog
 
       private
 
-      def consume_tokens_until_space_or_end(tokens = [])
-        return tokens if current_token.type == :space || current_token.type == :end
-        log("consuming #{current_token}")
-        tokens << state.consume_current_token!
-        consume_tokens_until_space_or_end(tokens)
+      def parts
+        @parts ||= []
       end
     end
   end

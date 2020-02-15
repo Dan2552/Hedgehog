@@ -1,46 +1,53 @@
 module Hedgehog
   module Parse
     class RootHandler < BaseHandler
-      def initialize(*args)
-        super
-        @unknown_command_or_env = true
-      end
-
-      # States:
-      # * Expecting env vars
-      # * Command
       def handle_token
         case current_token.type
         when :word_starting_with_letter, :word_starting_with_number
           new_command
+        when :pipe
+          new_pipe
+        when :newline, :space
+          state.consume_current_token!
         when :end
           state.consume_current_token!
-          raise "Unconsumed tokens: #{state.tokens.map(&:type)}" unless state.tokens.count == 0
+          raise "Unconsumed tokens: #{state.tokens.map(&:type)}" unless state.finished?
         else
-          raise ":( handle RootHandler: #{current_token}"
+          raise_unexpected
         end
       end
 
       def build_leaves
         root = Leaf.new(:root, nil)
 
-        commands.each do |command|
-          root.children << command.build_leaves
+        elements.each do |element|
+          root.children << element.build_leaves
         end
 
         root
       end
 
+      protected
+
+      def elements
+        @elements ||= []
+      end
+
       private
 
       def new_command
-        commands << spawn(CommandHandler)
+        elements << spawn(CommandHandler)
       end
 
-      # Each command will be a command separated by pipe.
-      #
-      def commands
-        @commands ||= []
+      def new_pipe
+        # move the latest command to the pipe leaf
+        latest_command = elements.pop
+        raise_unexpected unless latest_command.is_a?(CommandHandler)
+
+        state.consume_current_token!
+        pipe = spawn(PipeHandler)
+        pipe.lhs = latest_command
+        elements << pipe
       end
     end
   end

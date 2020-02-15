@@ -2,24 +2,27 @@ module Hedgehog
   module Parse
     class EnvVarHandler < BaseHandler
       def handle_token
-        case current_token.type
-        when :word_starting_with_letter # TODO: , :word_starting_with_number, etc
-          return handle_name unless name.present?
-          return handle_value if equals_fulfilled
-          raise_unexpected
-        when :equals
-          return handle_equals
-        # when :end # TODO: spec
-        #   state.pop_handler!
-        else
-          raise_unexpected
-        end
+        return handle_name unless name.present?
+
+        handle_value
+        state.pop_handler!
       end
 
       def build_leaves
         env_var = Leaf.new(:env_var, nil)
         env_var.children << Leaf.new(:lhs, name)
-        env_var.children << Leaf.new(:rhs, value) if value.present?
+
+        if @value_tokens.count == 1
+          rhs = Leaf.new(:rhs, @value_tokens.first)
+        else
+          rhs = Leaf.new(:rhs, nil)
+          @value_tokens.each do |token|
+            rhs.children << Leaf.new(:rhs_part, token)
+          end
+        end
+
+        env_var.children << rhs if @value_tokens.count > 0
+
         env_var
       end
 
@@ -30,14 +33,22 @@ module Hedgehog
       attr_reader :equals_fulfilled
 
       def handle_name
-        @name = current_token
-        state.consume_current_token!
+        case current_token.type
+        when :word_starting_with_letter
+          @name = current_token
+          state.consume_current_token!
+
+          raise_unexpected unless current_token.type == :equals
+          state.consume_current_token!
+        else
+          raise_unexpected
+        end
       end
 
       def handle_value
-        @value = current_token
-        state.consume_current_token!
-        state.pop_handler!
+        @value_tokens = consume_tokens_until do
+          current_token.type == :end || current_token.type == :space
+        end
       end
 
       def handle_equals
