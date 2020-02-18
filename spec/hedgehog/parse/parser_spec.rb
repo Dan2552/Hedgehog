@@ -19,7 +19,7 @@ RSpec.describe Hedgehog::Parse::Parser do
     end
   end
 
-  describe "#parse" do
+  fdescribe "#parse" do
     let(:tokens) { [] }
     subject { described_instance.parse }
 
@@ -46,6 +46,10 @@ RSpec.describe Hedgehog::Parse::Parser do
           root: { command: :argument }
         })
       end
+
+      it "can be converted back into a string" do
+        expect(subject.to_s).to eq("abc")
+      end
     end
 
     describe "simple multiple arguments (e.g. git log)" do
@@ -62,7 +66,7 @@ RSpec.describe Hedgehog::Parse::Parser do
         })
       end
 
-      fit "can be converted back into a string" do
+      it "can be converted back into a string" do
         expect(subject.to_s).to eq("abc abc")
       end
     end
@@ -86,7 +90,6 @@ RSpec.describe Hedgehog::Parse::Parser do
       end
 
       it "returns the parsed output" do
-
         expect(subject.structure).to eq({
           root: { command: [
             :argument,
@@ -94,6 +97,10 @@ RSpec.describe Hedgehog::Parse::Parser do
             { argument: { string: [:string_part, :string_part, :string_part]}}
           ] }
         })
+      end
+
+      it "can be converted back into a string" do
+        expect(subject.to_s).to eq("abc \"abc abc\" 'abc abc'")
       end
     end
 
@@ -110,6 +117,10 @@ RSpec.describe Hedgehog::Parse::Parser do
           root: { command: { env_var: [ :lhs, :rhs ] } }
         })
       end
+
+      it "can be converted back into a string" do
+        expect(subject.to_s).to eq("abc=abc")
+      end
     end
 
     describe "simple environment variable with a number (e.g. a=1hello)" do
@@ -124,6 +135,10 @@ RSpec.describe Hedgehog::Parse::Parser do
         expect(subject.structure).to eq({
           root: { command: { env_var: [ :lhs, :rhs ] } }
         })
+      end
+
+      it "can be converted back into a string" do
+        expect(subject.to_s).to eq("abc=1bc")
       end
     end
 
@@ -149,6 +164,10 @@ RSpec.describe Hedgehog::Parse::Parser do
           }
         })
       end
+
+      it "can be converted back into a string" do
+        expect(subject.to_s).to eq("abc=abc abc=abc")
+      end
     end
 
     describe "empty env var with argument (e.g. a= hello)" do
@@ -171,6 +190,10 @@ RSpec.describe Hedgehog::Parse::Parser do
           }
         })
       end
+
+      it "can be converted back into a string" do
+        expect(subject.to_s).to eq("abc= abc")
+      end
     end
 
     describe "command starting with number (e.g. 1hello)" do
@@ -184,6 +207,10 @@ RSpec.describe Hedgehog::Parse::Parser do
           root: { command: :argument }
         })
       end
+
+      it "can be converted back into a string" do
+        expect(subject.to_s).to eq("1bc")
+      end
     end
 
     describe "command of a string (e.g. 'abc')" do
@@ -196,8 +223,12 @@ RSpec.describe Hedgehog::Parse::Parser do
 
       it "returns the parsed output" do
         expect(subject.structure).to eq({
-          root: { command: { argument: :string } }
+          root: { command: { argument: { string: :string_part } } }
         })
+      end
+
+      it "can be converted back into a string" do
+        expect(subject.to_s).to eq("'abc'")
       end
     end
 
@@ -211,8 +242,12 @@ RSpec.describe Hedgehog::Parse::Parser do
 
       it "returns the parsed output" do
         expect(subject.structure).to eq({
-          root: { command: { argument: :string } }
+          root: { command: { argument: { string: :string_part } } }
         })
+      end
+
+      it "can be converted back into a string" do
+        expect(subject.to_s).to eq("\"abc\"")
       end
     end
 
@@ -249,6 +284,10 @@ RSpec.describe Hedgehog::Parse::Parser do
           root: { command: { argument: [:argument_part, :argument_part] } }
         })
       end
+
+      it "can be converted back into a string" do
+        expect(subject.to_s).to eq("1bc=")
+      end
     end
 
     describe 'env var with value in double quotes (e.g. a="hello")' do
@@ -270,6 +309,10 @@ RSpec.describe Hedgehog::Parse::Parser do
           }
         })
       end
+
+      it "can be converted back into a string" do
+        expect(subject.to_s).to eq("abc=\"abc\"")
+      end
     end
 
     describe "env var with value in single quotes (e.g. a='hello')" do
@@ -290,6 +333,10 @@ RSpec.describe Hedgehog::Parse::Parser do
             }
           }
         })
+      end
+
+      it "can be converted back into a string" do
+        expect(subject.to_s).to eq("abc='abc'")
       end
     end
 
@@ -314,6 +361,10 @@ RSpec.describe Hedgehog::Parse::Parser do
           }
         })
       end
+
+      it "can be converted back into a string" do
+        expect(subject.to_s).to eq("abc=$(abc abc))")
+      end
     end
 
     describe 'complex environment variable (e.g. a=123"hello"456)' do
@@ -336,6 +387,10 @@ RSpec.describe Hedgehog::Parse::Parser do
             }
           }
         })
+      end
+
+      it "can be converted back into a string" do
+        expect(subject.to_s).to eq("abc=1bc\"abc\"1bc")
       end
     end
 
@@ -364,6 +419,10 @@ RSpec.describe Hedgehog::Parse::Parser do
           }
         })
       end
+
+      it "can be converted back into a string" do
+        expect(subject.to_s).to eq("abc=abc $abc=abc")
+      end
     end
 
     describe 'Multiple commands split by newline (e.g. echo hello\necho world)' do
@@ -385,6 +444,10 @@ RSpec.describe Hedgehog::Parse::Parser do
             { command: [ :argument, :argument ] }
           ]
         })
+      end
+
+      it "can be converted back into a string" do
+        expect(subject.to_s).to eq("abc abc\nabc abc") # maybe should just be ; ?
       end
     end
 
@@ -414,6 +477,10 @@ RSpec.describe Hedgehog::Parse::Parser do
           }
         })
       end
+
+      it "can be converted back into a string" do
+        expect(subject.to_s).to eq("abc \"abc\nabc\"")
+      end
     end
 
     describe "Pipe (e.g. echo hello | grep hello)" do
@@ -439,6 +506,10 @@ RSpec.describe Hedgehog::Parse::Parser do
             ]
           }
         })
+      end
+
+      it "can be converted back into a string" do
+        expect(subject.to_s).to eq("abc abc | abc abc")
       end
     end
 
@@ -493,6 +564,10 @@ RSpec.describe Hedgehog::Parse::Parser do
             }
           ]
         })
+      end
+
+      it "can be converted back into a string" do
+        expect(subject.to_s).to eq("abc abc\nabc abc | abc abc\nabc abc\nabc abc | abc abc")
       end
     end
   end

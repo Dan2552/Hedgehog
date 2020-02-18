@@ -28,15 +28,10 @@ module Hedgehog
       end
 
       def to_s(replace_first_argument = nil)
-# root: { command: [
-#             :argument,
-#             { argument: { string: [:string_part, :string_part, :string_part]}},
-#             { argument: { string: [:string_part, :string_part, :string_part]}}
-#           ] }
         case type
         when :command
           children.map(&:to_s).join(" ")
-        when :argument, :argument_part, :lhs, :rhs, :string_part
+        when :argument, :argument_part, :lhs, :rhs, :string_part, :root, :rhs_part
           if token.present?
             token.text
           else
@@ -49,6 +44,10 @@ module Hedgehog
           lhs = children.find { |leaf| leaf.type == :lhs }
           rhs = children.find { |leaf| leaf.type == :rhs }
           "#{lhs}=#{rhs}"
+        when :pipe
+          lhs = children.find { |leaf| leaf.type == :lhs }
+          rhs = children.find { |leaf| leaf.type == :rhs }
+          "#{lhs} | #{rhs}"
         else
           raise "to_s for #{type}"
         end
