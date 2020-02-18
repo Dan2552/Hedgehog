@@ -5,7 +5,7 @@ module Hedgehog
   module Execution
     class Binary
       def validate(command)
-        command.binary_path.present?
+        command.treat_as_sh?
       end
 
       def run(command)
@@ -28,13 +28,13 @@ module Hedgehog
 
         to_execute = [
           set_previous_status,
-          command.with_binary_path,
+          command.expanded,
           rehyrate
         ].join("; ")
 
         output = ""
         input_thread = nil
-        IO.console.raw!
+        Terminal.raw!
 
         input = Hedgehog::Settings.shared_instance.input_source&.reader || STDIN
 
@@ -53,7 +53,7 @@ module Hedgehog
         flush_output_queue(output)
         rehydrate_input
 
-        IO.console.cooked!
+        Terminal.cooked!
 
         print "⏎\n" unless output.end_with?("\n") || output.empty?
 

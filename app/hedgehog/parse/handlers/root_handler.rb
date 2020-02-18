@@ -3,7 +3,7 @@ module Hedgehog
     class RootHandler < BaseHandler
       def handle_token
         case current_token.type
-        when :word_starting_with_letter, :word_starting_with_number
+        when :word_starting_with_letter, :word_starting_with_number, :single_quote, :double_quote
           new_command
         when :pipe
           new_pipe

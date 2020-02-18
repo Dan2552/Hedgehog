@@ -5,7 +5,8 @@ module Hedgehog
         return if determine_type
 
         @string_tokens = consume_tokens_until do
-          current_token.type == @string_type
+          raise_unexpected if current_token.type == :end
+          current_token.type == @string_type_token.type
         end
 
         state.consume_current_token!
@@ -13,9 +14,8 @@ module Hedgehog
       end
 
       def build_leaves
-        leaf = Leaf.new(:string, nil)
-
-        leaf.token = @string_tokens.first if @string_tokens.count == 1
+        # String leaf contains the type (i.e. ' vs ")
+        leaf = Leaf.new(:string, @string_type_token)
 
         @string_tokens.each do |token|
           leaf.children << Leaf.new(:string_part, token)
@@ -27,8 +27,8 @@ module Hedgehog
       private
 
       def determine_type
-        return false if @string_type.present?
-        @string_type = current_token.type
+        return false if @string_type_token.present?
+        @string_type_token = current_token
         state.consume_current_token!
         true
       end

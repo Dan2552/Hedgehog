@@ -61,6 +61,10 @@ RSpec.describe Hedgehog::Parse::Parser do
           root: { command: [:argument, :argument] }
         })
       end
+
+      fit "can be converted back into a string" do
+        expect(subject.to_s).to eq("abc abc")
+      end
     end
 
     describe "quoted arguments (e.g. hello \"hello world\" 'world hello')" do
@@ -180,6 +184,57 @@ RSpec.describe Hedgehog::Parse::Parser do
           root: { command: :argument }
         })
       end
+    end
+
+    describe "command of a string (e.g. 'abc')" do
+      let(:tokens) do
+        t(:single_quote,
+          :word_starting_with_letter,
+          :single_quote,
+          :end)
+      end
+
+      it "returns the parsed output" do
+        expect(subject.structure).to eq({
+          root: { command: { argument: :string } }
+        })
+      end
+    end
+
+    describe 'command of a string (e.g. "abc")' do
+      let(:tokens) do
+        t(:double_quote,
+          :word_starting_with_letter,
+          :double_quote,
+          :end)
+      end
+
+      it "returns the parsed output" do
+        expect(subject.structure).to eq({
+          root: { command: { argument: :string } }
+        })
+      end
+    end
+
+    describe "unclosed string (')" do
+      let(:tokens) do
+        t(:single_quote,
+          :end)
+      end
+
+      xit "returns the parsed output"
+    end
+
+    describe "unclosed string (echo 'hello)" do
+      let(:tokens) do
+        t(:word_starting_with_letter,
+          :space,
+          :single_quote,
+          :word_starting_with_letter,
+          :end)
+      end
+
+      xit "returns the parsed output"
     end
 
     describe "command starting with number with an equals (e.g. 1hello=)" do
@@ -333,7 +388,11 @@ RSpec.describe Hedgehog::Parse::Parser do
       end
     end
 
-    describe 'An argument with a newline (e.g. echo "hello\nworld"' do
+    describe 'String arguement with escaped quote (e.g. echo "\"")' do
+      xit "returns the parsed output"
+    end
+
+    describe 'An argument with a newline (e.g. echo "hello\nworld")' do
       let(:tokens) do
         t(:word_starting_with_letter,
           :space,

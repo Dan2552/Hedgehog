@@ -1,5 +1,6 @@
 module Hedgehog
   module Parse
+    class UnexpectedToken < StandardError; end
     class BaseHandler
       attr_reader :state
 
@@ -40,12 +41,14 @@ module Hedgehog
         state.current_handler = new_handler
       end
 
+      LOGGING = false
       def log(str, prefix = "* ")
+        return unless LOGGING == true
         puts(("    " * depth) + prefix + str)
       end
 
       def raise_unexpected
-        raise "Unexpected token #{current_token}"
+        raise UnexpectedToken, "Unexpected token #{current_token}"
       end
 
       def consume_tokens_until(tokens = [], &blk)

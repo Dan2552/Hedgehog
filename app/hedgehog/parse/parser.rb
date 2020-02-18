@@ -11,12 +11,12 @@ module Hedgehog
       end
 
       def parse
-        puts "\n\nSTART----------------"
+        # puts "\n\nSTART----------------"
         loop do
           break if state.finished?
           @state.current_handler.next
         end
-        puts "ENDED----------------\n\n"
+        # puts "ENDED----------------\n\n"
         @state.current_handler.build_leaves
       end
 

@@ -10,7 +10,7 @@ module Hedgehog
       attr_reader :text
 
       def to_s
-        "<Token:#{type}:#{text}>"
+        "<Token:#{type}:#{text.to_s.sub("\n", "")}>"
       end
     end
 
@@ -25,13 +25,13 @@ module Hedgehog
       end
 
       def tokenize
-        puts "\n\nSTART----------------"
+        log "\n\nSTART----------------"
         text.each_char do |c|
           @current_char = c
           handle_char
         end
         handle_end
-        puts "ENDED----------------\n\n"
+        log "ENDED----------------\n\n"
         @tokens
       end
 
@@ -48,7 +48,7 @@ module Hedgehog
       end
 
       def handle_char
-        puts "\ncharacter #{current_char}"
+        log "\ncharacter #{current_char}"
         case current_state
         when :empty
           handle_empty
@@ -63,7 +63,7 @@ module Hedgehog
       end
 
       def handle_end
-        puts "  handling end"
+        log "  handling end"
 
         add_token(current_state, current_word) if current_state != :empty
         add_token(:end, "")
@@ -76,11 +76,18 @@ module Hedgehog
         "`" => :backtick,
         "\"" => :double_quote,
         "|" => :pipe,
-        "\n" => :newline
+        "\n" => :newline,
+        ";" => :semicolon, # TODO: spec
+        # "~" => :tilde, # TODO: spec  not convinced
+        "\\" => :backslash, # TODO: spec
+        "." => :dot, # TODO: spec
+        "$" => :dollar, # TODO: spec
+        "(" => :left_parenthesis, # TODO: spec
+        ")" => :right_parenthesis, # TODO: spec
       }
 
       def handle_empty
-        puts "  handling empty"
+        log "  handling empty"
 
         @current_word = ""
 
@@ -92,30 +99,35 @@ module Hedgehog
         when *SINGLE_CHAR_TOKENS.keys
           add_token(SINGLE_CHAR_TOKENS[current_char], current_char)
         else
-          raise ":( handle_empty: #{current_char}"
+          # TODO: spec
+          @current_state = :word_starting_with_letter
+          # raise ":( handle_empty: #{current_char}"
         end
       end
 
       def handle_word
-        puts "  handling word"
+        log "  handling word"
         case current_char
         when *SINGLE_CHAR_TOKENS.keys
           end_word
         when /[a-zA-Z]/
         when /\d/
         else
-          raise ":( handle_word: #{current_char}"
+          # TODO: spec
+          #raise ":( handle_word: #{current_char}"
         end
       end
 
       def handle_number
-        puts "  handling number"
+        log "  handling number"
         case current_char
         when /\d/
         when /[a-zA-Z]/
           @current_state = :word_starting_with_number
         else
-          raise ":( handle_number: #{current_char}"
+          @current_state = :word_starting_with_number
+          # TODO: spec
+          # raise ":( handle_number: #{current_char}"
         end
       end
 
@@ -128,8 +140,14 @@ module Hedgehog
       end
 
       def add_token(type, word)
-        puts "    + adding token #{type} (#{word})"
+        log "    + adding token #{type} (#{word})"
         @tokens << Token.new(type, word)
+      end
+
+      LOGGING = false
+      def log(str)
+        return unless LOGGING == true
+        puts str
       end
     end
   end
