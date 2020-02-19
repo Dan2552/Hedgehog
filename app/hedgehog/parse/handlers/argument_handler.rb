@@ -3,7 +3,7 @@ module Hedgehog
     class ArgumentHandler < BaseHandler
       def handle_token
         case current_token.type
-        when :space, :end, :newline
+        when :space, :end, :newline, :right_parenthesis
           state.pop_handler!
         when :single_quote, :double_quote
           parts << spawn(StringHandler)
@@ -14,7 +14,8 @@ module Hedgehog
               :end,
               :single_quote,
               :double_quote,
-              :newline
+              :newline,
+              :right_parenthesis
             ].include?(current_token.type)
           end
           log("consumed #{consumed_tokens.count} tokens")

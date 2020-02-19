@@ -5,23 +5,26 @@ module Hedgehog
         return handle_name unless name.present?
 
         handle_value
-        state.pop_handler!
       end
 
       def build_leaves
         env_var = Leaf.new(:env_var, nil)
         env_var.children << Leaf.new(:lhs, name)
 
-        if @value_tokens.count == 1
-          rhs = Leaf.new(:rhs, @value_tokens.first)
+        if value_parts.count == 1 && value_parts.first.is_a?(Token)
+          rhs = Leaf.new(:rhs, value_parts.first)
         else
           rhs = Leaf.new(:rhs, nil)
-          @value_tokens.each do |token|
-            rhs.children << Leaf.new(:rhs_part, token)
+          value_parts.each do |part|
+            if part.is_a?(Token)
+              rhs.children << Leaf.new(:value_part, part)
+            else
+              rhs.children << part.build_leaves
+            end
           end
         end
 
-        env_var.children << rhs if @value_tokens.count > 0
+        env_var.children << rhs if value_parts.count > 0
 
         env_var
       end
@@ -46,8 +49,19 @@ module Hedgehog
       end
 
       def handle_value
-        @value_tokens = consume_tokens_until do
-          current_token.type == :end || current_token.type == :space
+        case current_token.type
+        when :single_quote, :double_quote
+          value_parts << spawn(StringHandler)
+        when :dollar
+          if state.peek(2).last == :left_parenthesis
+            value_parts << spawn(CommandSubstitutionHandler)
+          else
+            value_parts << state.consume_current_token!
+          end
+        when :end, :space
+          state.pop_handler!
+        else
+          value_parts << state.consume_current_token!
         end
       end
 
@@ -56,6 +70,10 @@ module Hedgehog
 
         @equals_fulfilled = true
         state.consume_current_token!
+      end
+
+      def value_parts
+        @value_parts ||= []
       end
     end
   end

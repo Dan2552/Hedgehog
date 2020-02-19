@@ -41,7 +41,7 @@ module Hedgehog
         state.current_handler = new_handler
       end
 
-      LOGGING = false
+      LOGGING = true
       def log(str, prefix = "* ")
         return unless LOGGING == true
         puts(("    " * depth) + prefix + str)

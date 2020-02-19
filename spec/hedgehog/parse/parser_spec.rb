@@ -13,13 +13,19 @@ RSpec.describe Hedgehog::Parse::Parser do
         double_quote: "\"",
         backtick: "`",
         pipe: "|",
+        dollar: "$",
+        left_parenthesis: "(",
+        right_parenthesis: ")",
+        newline: "\n",
         end: ""
       }
-      Hedgehog::Parse::Token.new(type, type_map[type])
+      text = type_map[type]
+      raise "Unknown token for testing: #{type}" unless text
+      Hedgehog::Parse::Token.new(type, text)
     end
   end
 
-  fdescribe "#parse" do
+  describe "#parse" do
     let(:tokens) { [] }
     subject { described_instance.parse }
 
@@ -174,7 +180,6 @@ RSpec.describe Hedgehog::Parse::Parser do
       let(:tokens) do
         t(:word_starting_with_letter,
           :equals,
-          :word_starting_with_letter,
           :space,
           :word_starting_with_letter,
           :end)
@@ -184,7 +189,7 @@ RSpec.describe Hedgehog::Parse::Parser do
         expect(subject.structure).to eq({
           root: {
             command: [
-              { env_var: [ :lhs, :rhs ] },
+              { env_var: :lhs },
               :argument
             ]
           }
@@ -304,7 +309,7 @@ RSpec.describe Hedgehog::Parse::Parser do
         expect(subject.structure).to eq({
           root: {
             command: {
-              env_var: [ :lhs, { rhs: [:rhs_part, :rhs_part, :rhs_part] } ]
+              env_var: [ :lhs, { rhs: { string: :string_part } } ]
             }
           }
         })
@@ -329,7 +334,7 @@ RSpec.describe Hedgehog::Parse::Parser do
         expect(subject.structure).to eq({
           root: {
             command: {
-              env_var: [ :lhs, { rhs: [:rhs_part, :rhs_part, :rhs_part] } ]
+              env_var: [ :lhs, { rhs: { string: :string_part } } ]
             }
           }
         })
@@ -345,25 +350,32 @@ RSpec.describe Hedgehog::Parse::Parser do
         t(:word_starting_with_letter,
           :equals,
           :dollar,
-          :left_bracket,
+          :left_parenthesis,
           :word_starting_with_letter,
+          :space,
           :word_starting_with_letter,
-          :right_bracket,
+          :right_parenthesis,
           :end)
       end
 
       it "returns the parsed output" do
+        inner_command = {
+          root: {
+            command: [:argument, :argument]
+          }
+        }
+
         expect(subject.structure).to eq({
           root: {
             command: {
-              env_var: [ :lhs, { rhs: [:rhs_part, :rhs_part, :rhs_part, :rhs_part, :rhs_part] } ]
+              env_var: [ :lhs, { rhs: { command_substitution: inner_command } } ]
             }
           }
         })
       end
 
       it "can be converted back into a string" do
-        expect(subject.to_s).to eq("abc=$(abc abc))")
+        expect(subject.to_s).to eq("abc=$(abc abc)")
       end
     end
 
@@ -383,7 +395,7 @@ RSpec.describe Hedgehog::Parse::Parser do
         expect(subject.structure).to eq({
           root: {
             command: {
-              env_var: [ :lhs, { rhs: [:rhs_part, :rhs_part, :rhs_part, :rhs_part, :rhs_part] } ]
+              env_var: [ :lhs, { rhs: [:value_part, { string: :string_part }, :value_part] } ]
             }
           }
         })
@@ -447,7 +459,7 @@ RSpec.describe Hedgehog::Parse::Parser do
       end
 
       it "can be converted back into a string" do
-        expect(subject.to_s).to eq("abc abc\nabc abc") # maybe should just be ; ?
+        expect(subject.to_s).to eq("abc abc; abc abc")
       end
     end
 
@@ -567,7 +579,7 @@ RSpec.describe Hedgehog::Parse::Parser do
       end
 
       it "can be converted back into a string" do
-        expect(subject.to_s).to eq("abc abc\nabc abc | abc abc\nabc abc\nabc abc | abc abc")
+        expect(subject.to_s).to eq("abc abc; abc abc | abc abc; abc abc; abc abc | abc abc")
       end
     end
   end
