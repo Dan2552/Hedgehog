@@ -17,6 +17,8 @@ RSpec.describe Hedgehog::Parse::Parser do
         left_parenthesis: "(",
         right_parenthesis: ")",
         newline: "\n",
+        backslash: "\\",
+        or: "||",
         end: ""
       }
       text = type_map[type]
@@ -467,6 +469,21 @@ RSpec.describe Hedgehog::Parse::Parser do
       xit "returns the parsed output"
     end
 
+    describe 'An single command with a newline (e.g. echo "echo \\nhello")' do
+      let(:tokens) do
+        t(:word_starting_with_letter,
+          :space,
+          :backslash,
+          :newline,
+          :word_starting_with_letter,
+          :end)
+      end
+
+      it "returns the parsed output" do
+        expect(subject.to_s).to eq("abc abc")
+      end
+    end
+
     describe 'An argument with a newline (e.g. echo "hello\nworld")' do
       let(:tokens) do
         t(:word_starting_with_letter,
@@ -492,6 +509,32 @@ RSpec.describe Hedgehog::Parse::Parser do
 
       it "can be converted back into a string" do
         expect(subject.to_s).to eq("abc \"abc\nabc\"")
+      end
+    end
+
+    describe "Or (e.g. abc || abc)" do
+      let(:tokens) do
+        t(:word_starting_with_letter,
+          :space,
+          :or,
+          :space,
+          :word_starting_with_letter,
+          :end)
+      end
+
+      fit "returns the parsed output" do
+        expect(subject.structure).to eq({
+          root: {
+            or: {
+              lhs: { command: :argument },
+              rhs: { command: :argument },
+            }
+          }
+        })
+      end
+
+      it "can be converted back into a string" do
+        expect(subject.to_s).to eq("abc || abc")
       end
     end
 

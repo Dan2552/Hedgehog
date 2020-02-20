@@ -56,6 +56,8 @@ module Hedgehog
           handle_word
         when :number
           handle_number
+        when :pipe
+          handle_pipe
         else
           raise ":( handle_char: #{current_state}"
         end
@@ -75,15 +77,12 @@ module Hedgehog
         "'" => :single_quote,
         "`" => :backtick,
         "\"" => :double_quote,
-        "|" => :pipe,
         "\n" => :newline,
-        ";" => :semicolon, # TODO: spec
-        # "~" => :tilde, # TODO: spec  not convinced
-        "\\" => :backslash, # TODO: spec
-        "." => :dot, # TODO: spec
-        "$" => :dollar, # TODO: spec
-        "(" => :left_parenthesis, # TODO: spec
-        ")" => :right_parenthesis, # TODO: spec
+        ";" => :semicolon,
+        "\\" => :backslash,
+        "$" => :dollar,
+        "(" => :left_parenthesis,
+        ")" => :right_parenthesis
       }
 
       def handle_empty
@@ -96,6 +95,9 @@ module Hedgehog
           @current_state = :word_starting_with_letter
         when /\d/
           @current_state = :number
+        when "|"
+          @current_state = :pipe
+          handle_pipe
         when *SINGLE_CHAR_TOKENS.keys
           add_token(SINGLE_CHAR_TOKENS[current_char], current_char)
         else
@@ -131,6 +133,28 @@ module Hedgehog
         end
       end
 
+      def handle_pipe
+        log "  handling pipe"
+
+        if @first_pipe_consumed
+          @first_pipe_consumed = nil
+          @current_state = :empty
+          case current_char
+          when "|"
+            log "    second pipe character found"
+            add_token(:or, "||")
+          else
+            log "    a non-pipe character was found"
+            add_token(:pipe, "|")
+            # rehandle the current char
+            handle_char
+          end
+        else
+          log "    first pipe character found"
+          @first_pipe_consumed = true
+        end
+      end
+
       def end_word
         add_token(current_state, current_word)
 
@@ -144,7 +168,7 @@ module Hedgehog
         @tokens << Token.new(type, word)
       end
 
-      LOGGING = false
+      LOGGING = $0.end_with?("rspec")
       def log(str)
         return unless LOGGING == true
         puts str

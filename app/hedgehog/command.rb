@@ -25,7 +25,7 @@ module Hedgehog
       @ast = Hedgehog::Parse::Parser.new(tokens).parse
 
       first = @ast.children.first
-      if first.type == :command
+      if first&.type == :command
         @command = first
         @arguments = @command.children.select { |leaf| leaf.type == :argument }
         @env_vars = @command.children.select { |leaf| leaf.type == :env_var }
@@ -67,8 +67,6 @@ module Hedgehog
       following_arguments = @arguments[1..-1].map(&:to_s).join(" ")
       env_vars = @env_vars.map(&:to_s).join(" ")
 
-      # puts "#{env_vars} #{binary_path} #{following_arguments}".strip
-      # puts "#{env_vars} #{binary_path} #{following_arguments}".strip
       puts "{{{ #{env_vars} #{binary_path} #{following_arguments} }}}".strip
 
       "#{env_vars} #{binary_path} #{following_arguments}".strip

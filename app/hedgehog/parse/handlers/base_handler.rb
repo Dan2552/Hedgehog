@@ -24,7 +24,14 @@ module Hedgehog
 
       def next
         log("#{state.current_handler.class.to_s.demodulize}: #{state.current_token}", "")
-        handle_token
+
+        case state.peek(2)
+        when [:backslash, :newline]
+          state.consume_current_token!
+          state.consume_current_token!
+        else
+          handle_token
+        end
       end
 
       def current_token
@@ -41,7 +48,7 @@ module Hedgehog
         state.current_handler = new_handler
       end
 
-      LOGGING = true
+      LOGGING = $0.end_with?("rspec")
       def log(str, prefix = "* ")
         return unless LOGGING == true
         puts(("    " * depth) + prefix + str)

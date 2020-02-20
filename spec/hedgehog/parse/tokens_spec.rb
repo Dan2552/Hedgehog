@@ -247,5 +247,71 @@ RSpec.describe Hedgehog::Parse::Tokens do
         expect(subject[0].text).to eq("|")
       end
     end
+
+    describe "or" do
+      let(:text) { "||" }
+
+      it "returns the tokens" do
+        expect(subject.count).to eq(2)
+
+        expect(subject[0].type).to eq(:or)
+        expect(subject[0].text).to eq("||")
+      end
+    end
+
+    describe "semicolon" do
+      let(:text) { ";" }
+
+      it "returns the tokens" do
+        expect(subject.count).to eq(2)
+
+        expect(subject[0].type).to eq(:semicolon)
+        expect(subject[0].text).to eq(";")
+      end
+    end
+
+    describe "backslash" do
+      let(:text) { "\\" }
+
+      it "returns the tokens" do
+        expect(subject.count).to eq(2)
+
+        expect(subject[0].type).to eq(:backslash)
+        expect(subject[0].text).to eq("\\")
+      end
+    end
+
+    describe "dollar" do
+      let(:text) { "$" }
+
+      it "returns the tokens" do
+        expect(subject.count).to eq(2)
+
+        expect(subject[0].type).to eq(:dollar)
+        expect(subject[0].text).to eq("$")
+      end
+    end
+
+    describe "left_parenthesis" do
+      let(:text) { "(" }
+
+      it "returns the tokens" do
+        expect(subject.count).to eq(2)
+
+        expect(subject[0].type).to eq(:left_parenthesis)
+        expect(subject[0].text).to eq("(")
+      end
+    end
+
+    describe "right_parenthesis" do
+      let(:text) { ")" }
+
+      it "returns the tokens" do
+        expect(subject.count).to eq(2)
+
+        expect(subject[0].type).to eq(:right_parenthesis)
+        expect(subject[0].text).to eq(")")
+      end
+    end
   end
 end
