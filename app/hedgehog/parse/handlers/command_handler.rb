@@ -3,7 +3,7 @@ module Hedgehog
     class CommandHandler < BaseHandler
       def handle_token
         case current_token.type
-        when :end, :newline, :pipe, :right_parenthesis
+        when :end, :newline, :pipe, :right_parenthesis, :or
           return state.pop_handler!
         when :space
           return state.consume_current_token!

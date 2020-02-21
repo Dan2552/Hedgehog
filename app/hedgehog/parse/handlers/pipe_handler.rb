@@ -1,6 +1,6 @@
 module Hedgehog
   module Parse
-    class PipeHandler < RootHandler
+    class OperatorHandler < RootHandler
       def handle_token
         case current_token.type
         when :end, :newline
@@ -11,9 +11,9 @@ module Hedgehog
       end
 
       def build_leaves
-        pipe = Leaf.new(:pipe, nil)
-        pipe.children << lhs = Leaf.new(:lhs, nil)
-        pipe.children << rhs = Leaf.new(:rhs, nil)
+        operator = Leaf.new(@operator_token.type, @operator_token)
+        operator.children << lhs = Leaf.new(:lhs, nil)
+        operator.children << rhs = Leaf.new(:rhs, nil)
 
         lhs.children << @lhs.build_leaves
 
@@ -21,7 +21,12 @@ module Hedgehog
           rhs.children << element.build_leaves
         end
 
-        pipe
+        operator
+      end
+
+      def operator_token=(operator_token)
+        raise "Unexpected assignment" if @operator_token
+        @operator_token = operator_token
       end
 
       def lhs=(lhs)

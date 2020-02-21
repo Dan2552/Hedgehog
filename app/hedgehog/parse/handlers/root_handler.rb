@@ -3,10 +3,10 @@ module Hedgehog
     class RootHandler < BaseHandler
       def handle_token
         case current_token.type
+        when :pipe, :or
+          new_operator
         when :word_starting_with_letter, :word_starting_with_number, :single_quote, :double_quote
           new_command
-        when :pipe
-          new_pipe
         when :newline, :space
           state.consume_current_token!
         when :end
@@ -39,15 +39,15 @@ module Hedgehog
         elements << spawn(CommandHandler)
       end
 
-      def new_pipe
-        # move the latest command to the pipe leaf
-        latest_command = elements.pop
-        raise_unexpected unless latest_command.is_a?(CommandHandler)
+      def new_operator
+        # move the latest element to the lhs of the operator
+        latest_element = elements.pop
+        raise_unexpected unless latest_element.is_a?(CommandHandler)
 
-        state.consume_current_token!
-        pipe = spawn(PipeHandler)
-        pipe.lhs = latest_command
-        elements << pipe
+        operator = spawn(OperatorHandler)
+        operator.operator_token = state.consume_current_token!
+        operator.lhs = latest_element
+        elements << operator
       end
     end
   end

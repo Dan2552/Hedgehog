@@ -1,4 +1,4 @@
-RSpec.describe Hedgehog::Parse::Parser do
+RSpec.fdescribe Hedgehog::Parse::Parser do
   let(:described_instance) { described_class.new(tokens) }
 
   def t(*token_types)
@@ -522,13 +522,13 @@ RSpec.describe Hedgehog::Parse::Parser do
           :end)
       end
 
-      fit "returns the parsed output" do
+      it "returns the parsed output" do
         expect(subject.structure).to eq({
           root: {
-            or: {
-              lhs: { command: :argument },
-              rhs: { command: :argument },
-            }
+            or: [
+              { lhs: { command: :argument } },
+              { rhs: { command: :argument } },
+            ]
           }
         })
       end
