@@ -44,7 +44,7 @@ describe Hedgehog::Input::Loop do
       let(:responses) { [line, nil] }
 
       it "runs the command with Execution::Runner" do
-        expect_any_instance_of(Hedgehog::Execution::Runner)
+        expect(Hedgehog::Execution::Runner)
           .to receive(:run)
           .with(line)
 
@@ -57,7 +57,7 @@ describe Hedgehog::Input::Loop do
       let(:responses) { [line, line, nil] }
 
       it "runs each command with Execution::Runner" do
-        expect_any_instance_of(Hedgehog::Execution::Runner)
+        expect(Hedgehog::Execution::Runner)
           .to receive(:run)
           .with(line)
           .twice

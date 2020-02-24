@@ -1,15 +1,6 @@
 module Hedgehog
   class Command
 
-    class Sequence
-      def initialize(ast)
-      end
-
-      def method_name
-
-      end
-    end
-
 # TODO: kill off these constants
     # I.e. will only match spaces that don't have a proceeding `\`
     #
@@ -27,10 +18,15 @@ module Hedgehog
     #
     attr_reader :original
 
-    def initialize(original)
+    def initialize(original, ast = nil)
       @original = original
-      tokens = Hedgehog::Parse::Tokens.new(original).tokenize
-      @ast = Hedgehog::Parse::Parser.new(tokens).parse
+
+      if ast
+        @ast = ast
+      else
+        tokens = Hedgehog::Parse::Tokens.new(original).tokenize
+        @ast = Hedgehog::Parse::Parser.new(tokens).parse
+      end
 
       first = @ast.children.first
 
@@ -64,7 +60,7 @@ module Hedgehog
     # This is Hedgehog's main concern on the command: Should this command be
     # treated as a regular shell command, or as Ruby?
     #
-    def treat_as_sh?
+    def treat_as_shell?
       binary_path.present?
     end
 
@@ -82,9 +78,42 @@ module Hedgehog
       @ast.children.count > 1
     end
 
+    def sequence
+      sequence = @ast.children
+        .select { |leaf| leaf.type == :command }
+        .map do |leaf|
+          root = Hedgehog::Parse::Leaf.new(:root, nil)
+          root.children << leaf
+          self.class.new(leaf.to_s, root)
+        end
+    end
+
     def piped?
       @ast.children.count == 1 &&
         @ast.children.first.type == :pipe
+    end
+
+    def operation_parts
+      return nil unless piped? || binary_operation?
+
+      binary_operator = @ast.children.first
+      lhs = binary_operator.children.find { |leaf| leaf.type == :lhs }.to_s
+      rhs = binary_operator.children.find { |leaf| leaf.type == :rhs }.to_s
+
+      {
+        operator: binary_operator.type,
+        lhs: lhs,
+        rhs: rhs
+      }
+    end
+
+    def binary_operation?
+      case @ast&.children&.first&.type
+      when :or, :and
+        true
+      else
+        false
+      end
     end
 
     def arguments_collection

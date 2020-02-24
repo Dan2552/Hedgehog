@@ -5,7 +5,10 @@ module Hedgehog
         command.sequential?
       end
 
-      def run(command)
+      def run(commands)
+        commands.sequence.each do |command|
+          Runner.run(command)
+        end
       end
     end
   end

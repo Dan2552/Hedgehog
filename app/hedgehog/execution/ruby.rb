@@ -12,7 +12,9 @@ module Hedgehog
 
         def _run(str)
           _binding.eval(str)
+          system("exit 0")
         rescue Exception => e
+          system("exit 1")
           # In a shell we don't necessarily want a full exception. Especially
           # if they mislead the reason to point to Hedgehog internals.
           raise e.to_s

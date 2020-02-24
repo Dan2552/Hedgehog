@@ -3,9 +3,9 @@ require 'io/console'
 
 module Hedgehog
   module Execution
-    class Binary
+    class Shell
       def validate(command)
-        command.treat_as_sh?
+        command.treat_as_shell?
       end
 
       def run(command)

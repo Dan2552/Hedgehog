@@ -3,12 +3,17 @@ module Hedgehog
     module_function
 
     def run(command_string)
-      _runner.run(command_string)
+      Hedgehog::Execution::Runner.run(command_string)
     end
 
     def binary_run(command_string)
+      puts "Hedgehog: binary_run is deprecated, use shell_run instead"
+      shell_run(command_string)
+    end
+
+    def shell_run(command_string)
       command = Hedgehog::Command.new(command_string)
-      Hedgehog::Execution::Binary.new.run(command)
+      Hedgehog::Execution::Shell.new.run(command)
     end
 
     def prompt(&blk)
@@ -30,12 +35,6 @@ module Hedgehog
       else
         state.aliases[name]
       end
-    end
-
-    private
-
-    def _runner
-      @_runner ||= Hedgehog::Execution::Runner.new
     end
   end
 end

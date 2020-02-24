@@ -1,4 +1,4 @@
-describe Hedgehog::Execution::Binary do
+describe Hedgehog::Execution::Shell do
   let(:described_instance) { described_class.new }
   it_behaves_like "execution"
 

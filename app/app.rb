@@ -31,8 +31,10 @@ begin
     config.disabled_built_ins = []
     config.execution_order = [
       Hedgehog::Execution::Noop.new,
+      Hedgehog::Execution::Sequential.new,
+      Hedgehog::Execution::BinaryOperation.new,
       Hedgehog::Execution::Alias.new,
-      Hedgehog::Execution::Binary.new,
+      Hedgehog::Execution::Shell.new,
       Hedgehog::Execution::Ruby.new,
     ]
     config.input_history = Hedgehog::Input::History.new

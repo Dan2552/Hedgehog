@@ -1,19 +1,13 @@
 module Hedgehog
   module Execution
-    class Runner
-      def run(command_string)
-        command = Hedgehog::Command.new(command_string)
+    module Runner
+      def self.run(command)
+        command = Hedgehog::Command.new(command) if command.is_a?(String)
 
-        settings.execution_order.each do |adapter|
+        Hedgehog::Settings.shared_instance.execution_order.each do |adapter|
           next unless adapter.validate(command)
           return adapter.run(command)
         end
-      end
-
-      private
-
-      def settings
-        Hedgehog::Settings.shared_instance
       end
     end
   end

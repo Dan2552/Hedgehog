@@ -66,7 +66,154 @@ describe Hedgehog::Command do
     end
   end
 
-  fdescribe "#piped?" do
+  describe "#sequence" do
+    subject { described_instance.sequence }
+
+    context "when there are multiple commands split by newline" do
+      let(:command) { "echo x\necho y" }
+
+      it "returns the commands" do
+        expect(subject).to be_an(Array)
+        expect(subject).to all(be_a(Hedgehog::Command))
+        expect(subject.first.original).to eq("echo x")
+        expect(subject.second.original).to eq("echo y")
+      end
+    end
+  end
+
+  describe "#operation_parts" do
+    subject { described_instance.operation_parts }
+
+    context "when there is no command" do
+      let(:command) { "" }
+
+      it "returns nil" do
+        expect(subject).to eq(nil)
+      end
+    end
+
+    context "when there is only 1 command" do
+      let(:command) { "echo hello" }
+
+      it "returns nil" do
+        expect(subject).to eq(nil)
+      end
+    end
+
+    context "when there is an pipe" do
+      let(:command) { "echo hello | grep he" }
+
+      it "returns the operator details" do
+        expect(subject).to eq(
+          operator: :pipe,
+          lhs: "echo hello",
+          rhs: "grep he"
+        )
+      end
+    end
+
+    context "when there is an or" do
+      let(:command) { "echo x || echo y" }
+
+      it "returns the operator details" do
+        expect(subject).to eq(
+          operator: :or,
+          lhs: "echo x",
+          rhs: "echo y"
+        )
+      end
+    end
+
+    context "when there is an and" do
+      let(:command) { "echo x && echo y" }
+
+      it "returns the operator details" do
+        expect(subject).to eq(
+          operator: :and,
+          lhs: "echo x",
+          rhs: "echo y"
+        )
+      end
+    end
+
+    context "when there are multiple commands split by semicolon" do
+      let(:command) { "echo x; echo y" }
+
+      it "returns nil" do
+        expect(subject).to eq(nil)
+      end
+    end
+
+    context "when there are multiple commands split by newline" do
+      let(:command) { "echo x\necho y" }
+
+      it "returns nil" do
+        expect(subject).to eq(nil)
+      end
+    end
+  end
+
+  describe "#binary_operation?" do
+    subject { described_instance.binary_operation? }
+
+    context "when there is no command" do
+      let(:command) { "" }
+
+      it "returns false" do
+        expect(subject).to eq(false)
+      end
+    end
+
+    context "when there is only 1 command" do
+      let(:command) { "echo hello" }
+
+      it "returns false" do
+        expect(subject).to eq(false)
+      end
+    end
+
+    context "when there is an pipe" do
+      let(:command) { "echo hello | grep he" }
+
+      it "returns false" do
+        expect(subject).to eq(false)
+      end
+    end
+
+    context "when there is an or" do
+      let(:command) { "echo x || echo y" }
+
+      it "returns true" do
+        expect(subject).to eq(true)
+      end
+    end
+
+    context "when there is an and" do
+      let(:command) { "echo x && echo y" }
+
+      it "returns true" do
+        expect(subject).to eq(true)
+      end
+    end
+
+    context "when there are multiple commands split by semicolon" do
+      let(:command) { "echo x; echo y" }
+
+      it "returns false" do
+        expect(subject).to eq(false)
+      end
+    end
+
+    context "when there are multiple commands split by newline" do
+      let(:command) { "echo x\necho y" }
+
+      it "returns false" do
+        expect(subject).to eq(false)
+      end
+    end
+  end
+
+  describe "#piped?" do
     subject { described_instance.piped? }
 
     context "when there is no command" do
