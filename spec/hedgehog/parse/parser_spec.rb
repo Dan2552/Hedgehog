@@ -1,4 +1,4 @@
-RSpec.fdescribe Hedgehog::Parse::Parser do
+RSpec.describe Hedgehog::Parse::Parser do
   let(:described_instance) { described_class.new(tokens) }
 
   def t(*token_types)
@@ -19,6 +19,8 @@ RSpec.fdescribe Hedgehog::Parse::Parser do
         newline: "\n",
         backslash: "\\",
         or: "||",
+        and: "&&",
+        semicolon: ";",
         end: ""
       }
       text = type_map[type]
@@ -264,7 +266,10 @@ RSpec.fdescribe Hedgehog::Parse::Parser do
           :end)
       end
 
-      xit "returns the parsed output"
+      it "raises an exception" do
+        expect { subject }
+          .to raise_error(Hedgehog::Parse::UnexpectedToken)
+      end
     end
 
     describe "unclosed string (echo 'hello)" do
@@ -276,7 +281,10 @@ RSpec.fdescribe Hedgehog::Parse::Parser do
           :end)
       end
 
-      xit "returns the parsed output"
+      it "raises an exception" do
+        expect { subject }
+          .to raise_error(Hedgehog::Parse::UnexpectedToken)
+      end
     end
 
     describe "command starting with number with an equals (e.g. 1hello=)" do
@@ -465,8 +473,58 @@ RSpec.fdescribe Hedgehog::Parse::Parser do
       end
     end
 
-    describe 'String arguement with escaped quote (e.g. echo "\"")' do
-      xit "returns the parsed output"
+    describe 'Multiple commands split by semicolon (e.g. echo hello; echo world)' do
+      let(:tokens) do
+        t(:word_starting_with_letter,
+          :space,
+          :word_starting_with_letter,
+          :semicolon,
+          :space,
+          :word_starting_with_letter,
+          :space,
+          :word_starting_with_letter,
+          :end)
+      end
+
+      it "returns the parsed output" do
+        expect(subject.structure).to eq({
+          root: [
+            { command: [ :argument, :argument ] },
+            { command: [ :argument, :argument ] }
+          ]
+        })
+      end
+
+      it "can be converted back into a string" do
+        expect(subject.to_s).to eq("abc abc; abc abc")
+      end
+    end
+
+    describe 'String argument with escaped quote (e.g. echo "\"")' do
+      let(:tokens) do
+        t(:word_starting_with_letter,
+          :space,
+          :double_quote,
+          :backslash,
+          :double_quote,
+          :double_quote,
+          :end)
+      end
+
+      it "returns the parsed output" do
+        expect(subject.structure).to eq({
+          root: {
+            command: [
+              :argument,
+              argument: { string: [:string_part, :string_part] }
+            ]
+          }
+        })
+      end
+
+      it "can be converted back into a string" do
+        expect(subject.to_s).to eq('abc "\""')
+      end
     end
 
     describe 'An single command with a newline (e.g. echo "echo \\nhello")' do
@@ -535,6 +593,32 @@ RSpec.fdescribe Hedgehog::Parse::Parser do
 
       it "can be converted back into a string" do
         expect(subject.to_s).to eq("abc || abc")
+      end
+    end
+
+    describe "And (e.g. abc && abc)" do
+      let(:tokens) do
+        t(:word_starting_with_letter,
+          :space,
+          :and,
+          :space,
+          :word_starting_with_letter,
+          :end)
+      end
+
+      it "returns the parsed output" do
+        expect(subject.structure).to eq({
+          root: {
+            and: [
+              { lhs: { command: :argument } },
+              { rhs: { command: :argument } },
+            ]
+          }
+        })
+      end
+
+      it "can be converted back into a string" do
+        expect(subject.to_s).to eq("abc && abc")
       end
     end
 

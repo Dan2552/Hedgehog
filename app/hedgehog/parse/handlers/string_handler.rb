@@ -6,7 +6,12 @@ module Hedgehog
 
         @string_tokens = consume_tokens_until do
           raise_unexpected if current_token.type == :end
-          current_token.type == @string_type_token.type
+
+          result = unescaped? && current_token.type == @string_type_token.type
+
+          @last_was_a_backslash = current_token.type == :backslash
+
+          result
         end
 
         state.consume_current_token!
@@ -25,6 +30,10 @@ module Hedgehog
       end
 
       private
+
+      def unescaped?
+        @last_was_a_backslash != true
+      end
 
       def determine_type
         return false if @string_type_token.present?

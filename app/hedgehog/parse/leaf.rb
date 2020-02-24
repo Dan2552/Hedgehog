@@ -46,10 +46,10 @@ module Hedgehog
           lhs = children.find { |leaf| leaf.type == :lhs }
           rhs = children.find { |leaf| leaf.type == :rhs }
           "#{lhs}=#{rhs}"
-        when :pipe
+        when :pipe, :or, :and
           lhs = children.find { |leaf| leaf.type == :lhs }
           rhs = children.find { |leaf| leaf.type == :rhs }
-          "#{lhs} | #{rhs}"
+          "#{lhs} #{token.text} #{rhs}"
         when :command_substitution
           "$(#{children.map(&:to_s).join("")})"
         else

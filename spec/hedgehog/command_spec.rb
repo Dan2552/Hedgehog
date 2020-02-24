@@ -6,119 +6,214 @@ describe Hedgehog::Command do
     settings.binary_in_path_finder = Hedgehog::BinaryInPathFinder::Ruby.new
   end
 
-  context "echo hello world" do
-    let(:command) { "echo hello world" }
+  describe "#sequential?" do
+    subject { described_instance.sequential? }
 
-    describe "#binary_name" do
-      subject { described_instance.binary_name }
+    context "when there is no command" do
+      let(:command) { "" }
 
-      it { is_expected.to eq("echo") }
-    end
-
-    describe "#binary_path" do
-      subject { described_instance.binary_path }
-
-      it { is_expected.to eq("/bin/echo") }
-    end
-
-    describe "#original" do
-      subject { described_instance.original }
-
-      it { is_expected.to eq("echo hello world") }
-    end
-
-    describe "#with_binary_path" do
-      subject { described_instance.with_binary_path }
-
-      it { is_expected.to eq("/bin/echo hello world") }
-    end
-
-    describe "#arguments" do
-      subject { described_instance.arguments }
-
-      it { is_expected.to be_a(Hedgehog::Command::Arguments) }
-      it { is_expected.to match_array(["hello", "world"]) }
-    end
-
-    describe "#incomplete?" do
-      subject { described_instance.incomplete? }
-
-      it { is_expected.to eq(false) }
-
-      context "when ending in a backslash" do
-        let(:command) { "echo hello world \\ " }
-
-        it { is_expected.to eq(true) }
+      it "returns false" do
+        expect(subject).to eq(false)
       end
     end
 
-    describe "#env_vars" do
-      subject { described_instance.env_vars }
+    context "when there is only 1 command" do
+      let(:command) { "echo hello" }
 
-      it { is_expected.to match_array([]) }
-    end
-  end
-
-  context 'echo "one one" two' do
-    let(:command) { 'echo "one one" two' }
-
-    describe "#arguments" do
-      subject { described_instance.arguments }
-
-      it { is_expected.to be_a(Hedgehog::Command::Arguments) }
-      it { is_expected.to match_array(['"one one"', "two"]) }
-    end
-  end
-
-  context 'cd ~/wedding\ upload\ to\ fb/' do
-    let(:command) { 'cd ~/wedding\ upload\ to\ fb/' }
-
-    describe "#binary_name" do
-      subject { described_instance.binary_name }
-
-      it { is_expected.to eq("cd") }
+      it "returns false" do
+        expect(subject).to eq(false)
+      end
     end
 
-    describe "#arguments" do
-      subject { described_instance.arguments }
+    context "when there is an pipe" do
+      let(:command) { "echo hello | grep he" }
 
-      it { is_expected.to be_a(Hedgehog::Command::Arguments) }
-      it { is_expected.to match_array(['~/wedding\ upload\ to\ fb/']) }
+      it "returns false" do
+        expect(subject).to eq(false)
+      end
+    end
 
-      describe "to_s" do
-        subject { described_instance.arguments.to_s }
+    context "when there is an or" do
+      let(:command) { "echo x || echo y" }
 
-        it { is_expected.to eq('~/wedding\ upload\ to\ fb/') }
+      it "returns false" do
+        expect(subject).to eq(false)
+      end
+    end
+
+    context "when there is an and" do
+      let(:command) { "echo x && echo y" }
+
+      it "returns false" do
+        expect(subject).to eq(false)
+      end
+    end
+
+    context "when there are multiple commands split by semicolon" do
+      let(:command) { "echo x; echo y" }
+
+      it "returns true" do
+        expect(subject).to eq(true)
+      end
+    end
+
+    context "when there are multiple commands split by newline" do
+      let(:command) { "echo x\necho y" }
+
+      it "returns true" do
+        expect(subject).to eq(true)
       end
     end
   end
 
-  context "TEST=test ruby -e \"puts ENV['TEST']\"" do
-    let(:command) { "TEST=test ruby -e \"puts ENV['TEST']\"" }
+  fdescribe "#piped?" do
+    subject { described_instance.piped? }
 
-    describe "#binary_name" do
-      subject { described_instance.binary_name }
+    context "when there is no command" do
+      let(:command) { "" }
 
-      it { is_expected.to eq("ruby") }
-    end
-
-    describe "#arguments" do
-      subject { described_instance.arguments }
-
-      it { is_expected.to be_a(Hedgehog::Command::Arguments) }
-      it { is_expected.to match_array(["-e", "\"puts ENV['TEST']\""]) }
-
-      describe "to_s" do
-        subject { described_instance.arguments.to_s }
-
-        it { is_expected.to eq("-e \"puts ENV['TEST']\"") }
+      it "returns false" do
+        expect(subject).to eq(false)
       end
     end
 
-    describe "#env_vars" do
-      subject { described_instance.env_vars }
+    context "when there is only 1 command" do
+      let(:command) { "echo hello" }
 
-      it { is_expected.to match_array(["TEST=test"]) }
+      it "returns false" do
+        expect(subject).to eq(false)
+      end
+    end
+
+    context "when there is an pipe" do
+      let(:command) { "echo hello | grep he" }
+
+      it "returns true" do
+        expect(subject).to eq(true)
+      end
+    end
+
+    context "when there is an or" do
+      let(:command) { "echo x || echo y" }
+
+      it "returns false" do
+        expect(subject).to eq(false)
+      end
+    end
+
+    context "when there is an and" do
+      let(:command) { "echo x && echo y" }
+
+      it "returns false" do
+        expect(subject).to eq(false)
+      end
+    end
+
+    context "when there are multiple commands split by semicolon" do
+      let(:command) { "echo x; echo y" }
+
+      it "returns false" do
+        expect(subject).to eq(false)
+      end
+    end
+
+    context "when there are multiple commands split by newline" do
+      let(:command) { "echo x\necho y" }
+
+      it "returns false" do
+        expect(subject).to eq(false)
+      end
     end
   end
+
+  # context "echo hello world" do
+  #   let(:command) { "echo hello world" }
+
+  #   describe "#binary_name" do
+  #     subject { described_instance.binary_name }
+
+  #     it { is_expected.to eq("echo") }
+  #   end
+
+  #   describe "#incomplete?" do
+  #     subject { described_instance.incomplete? }
+
+  #     it { is_expected.to eq(false) }
+
+  #     context "when ending in a backslash" do
+  #       let(:command) { "echo hello world \\ " }
+
+  #       it { is_expected.to eq(true) }
+  #     end
+  #   end
+
+  #   describe "#env_vars" do
+  #     subject { described_instance.env_vars }
+
+  #     it { is_expected.to match_array([]) }
+  #   end
+  # end
+
+  # context 'echo "one one" two' do
+  #   let(:command) { 'echo "one one" two' }
+
+  #   describe "#arguments" do
+  #     subject { described_instance.arguments }
+
+  #     it { is_expected.to be_a(Hedgehog::Command::Arguments) }
+  #     it { is_expected.to match_array(['"one one"', "two"]) }
+  #   end
+  # end
+
+  # context 'cd ~/wedding\ upload\ to\ fb/' do
+  #   let(:command) { 'cd ~/wedding\ upload\ to\ fb/' }
+
+  #   describe "#binary_name" do
+  #     subject { described_instance.binary_name }
+
+  #     it { is_expected.to eq("cd") }
+  #   end
+
+  #   describe "#arguments" do
+  #     subject { described_instance.arguments }
+
+  #     it { is_expected.to be_a(Hedgehog::Command::Arguments) }
+  #     it { is_expected.to match_array(['~/wedding\ upload\ to\ fb/']) }
+
+  #     describe "to_s" do
+  #       subject { described_instance.arguments.to_s }
+
+  #       it { is_expected.to eq('~/wedding\ upload\ to\ fb/') }
+  #     end
+  #   end
+  # end
+
+  # context "TEST=test ruby -e \"puts ENV['TEST']\"" do
+  #   let(:command) { "TEST=test ruby -e \"puts ENV['TEST']\"" }
+
+  #   describe "#binary_name" do
+  #     subject { described_instance.binary_name }
+
+  #     it { is_expected.to eq("ruby") }
+  #   end
+
+  #   describe "#arguments" do
+  #     subject { described_instance.arguments }
+
+  #     it { is_expected.to be_a(Hedgehog::Command::Arguments) }
+  #     it { is_expected.to match_array(["-e", "\"puts ENV['TEST']\""]) }
+
+  #     describe "to_s" do
+  #       subject { described_instance.arguments.to_s }
+
+  #       it { is_expected.to eq("-e \"puts ENV['TEST']\"") }
+  #     end
+  #   end
+
+  #   describe "#env_vars" do
+  #     subject { described_instance.env_vars }
+
+  #     it { is_expected.to match_array(["TEST=test"]) }
+  #   end
+  # end
 end

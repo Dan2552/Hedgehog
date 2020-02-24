@@ -58,6 +58,8 @@ module Hedgehog
           handle_number
         when :pipe
           handle_pipe
+        when :ampersand
+          handle_ampersand
         else
           raise ":( handle_char: #{current_state}"
         end
@@ -98,6 +100,9 @@ module Hedgehog
         when "|"
           @current_state = :pipe
           handle_pipe
+        when "&"
+          @current_state = :ampersand
+          handle_ampersand
         when *SINGLE_CHAR_TOKENS.keys
           add_token(SINGLE_CHAR_TOKENS[current_char], current_char)
         else
@@ -152,6 +157,28 @@ module Hedgehog
         else
           log "    first pipe character found"
           @first_pipe_consumed = true
+        end
+      end
+
+      def handle_ampersand
+        log "  handling ampersand"
+
+        if @first_ampersand_consumed
+          @first_ampersand_consumed = nil
+          @current_state = :empty
+          case current_char
+          when "&"
+            log "    second ampersand character found"
+            add_token(:and, "&&")
+          else
+            log "    a non-ampersand character was found"
+            add_token(:ampersand, "&")
+            # rehandle the current char
+            handle_char
+          end
+        else
+          log "    first ampersand character found"
+          @first_ampersand_consumed = true
         end
       end
 
