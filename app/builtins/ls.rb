@@ -5,7 +5,7 @@ unless Hedgehog::Settings
          .include?("ls")
 
   function "ls" do |args|
-    binary_run "ls -G #{args}"
+    shell_run "ls -G #{args}"
   end
 
 end

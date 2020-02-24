@@ -11,8 +11,7 @@ module Hedgehog
         end
 
         def _run(str)
-          _binding.eval(str)
-          system("exit 0")
+          _binding.eval(str).tap { system("exit 0") }
         rescue Exception => e
           system("exit 1")
           # In a shell we don't necessarily want a full exception. Especially
