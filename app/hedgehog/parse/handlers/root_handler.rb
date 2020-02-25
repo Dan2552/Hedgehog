@@ -5,7 +5,7 @@ module Hedgehog
         case current_token.type
         when :pipe, :or, :and
           new_operator
-        when :word_starting_with_letter, :word_starting_with_number, :single_quote, :double_quote
+        when :word_starting_with_letter, :word_starting_with_number, :single_quote, :double_quote, :forward_slash
           new_command
         when :newline, :space, :semicolon
           state.consume_current_token!

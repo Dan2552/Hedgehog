@@ -281,6 +281,17 @@ RSpec.describe Hedgehog::Parse::Tokens do
       end
     end
 
+    describe "forward_slash" do
+      let(:text) { "/" }
+
+      it "returns the tokens" do
+        expect(subject.count).to eq(2)
+
+        expect(subject[0].type).to eq(:forward_slash)
+        expect(subject[0].text).to eq("/")
+      end
+    end
+
     describe "backslash" do
       let(:text) { "\\" }
 

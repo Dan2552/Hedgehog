@@ -84,7 +84,8 @@ module Hedgehog
         "\\" => :backslash,
         "$" => :dollar,
         "(" => :left_parenthesis,
-        ")" => :right_parenthesis
+        ")" => :right_parenthesis,
+        "/" => :forward_slash
       }
 
       def handle_empty

@@ -6,6 +6,33 @@ describe Hedgehog::Command do
     settings.binary_in_path_finder = Hedgehog::BinaryInPathFinder::Ruby.new
   end
 
+  describe "#treat_as_shell?" do
+    subject { described_instance.treat_as_shell? }
+    context "where there is no command" do
+      let(:command) { "" }
+
+      it "returns false" do
+        expect(subject).to eq(false)
+      end
+    end
+
+    context "when there is a command" do
+      let(:command) { "echo hello" }
+
+      it "returns true" do
+        expect(subject).to eq(true)
+      end
+    end
+
+    context "when there is a command with an absolute path" do
+      let(:command) { "/bin/echo hello" }
+
+      it "returns true" do
+        expect(subject).to eq(true)
+      end
+    end
+  end
+
   describe "#sequential?" do
     subject { described_instance.sequential? }
 

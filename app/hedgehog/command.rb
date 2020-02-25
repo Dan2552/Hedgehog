@@ -141,6 +141,9 @@ module Hedgehog
     def binary_path
       return nil unless binary_name.present?
 
+      # If binary name is a path to the binary already
+      return binary_name if File.file?(binary_name)
+
       path_finder = Hedgehog::Settings
         .shared_instance
         .binary_in_path_finder

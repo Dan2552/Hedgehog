@@ -21,6 +21,7 @@ RSpec.describe Hedgehog::Parse::Parser do
         or: "||",
         and: "&&",
         semicolon: ";",
+        forward_slash: "/",
         end: ""
       }
       text = type_map[type]
@@ -78,6 +79,37 @@ RSpec.describe Hedgehog::Parse::Parser do
 
       it "can be converted back into a string" do
         expect(subject.to_s).to eq("abc abc")
+      end
+    end
+
+    describe "command at a path (e.g. /usr/bin/grep)" do
+      let(:tokens) do
+        t(:forward_slash,
+          :word_starting_with_letter,
+          :forward_slash,
+          :word_starting_with_letter,
+          :forward_slash,
+          :word_starting_with_letter,
+          :end)
+      end
+
+      it "returns the parsed output" do
+        expect(subject.structure).to eq({
+          root: { command: {
+            argument: [
+              :argument_part, # /
+              :argument_part, # abc
+              :argument_part, # /
+              :argument_part, # abc
+              :argument_part, # /
+              :argument_part  # abc
+            ]
+          }}
+        })
+      end
+
+      it "can be converted back into a string" do
+        expect(subject.to_s).to eq("/abc/abc/abc")
       end
     end
 
