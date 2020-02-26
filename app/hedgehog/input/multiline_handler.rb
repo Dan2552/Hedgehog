@@ -2,7 +2,14 @@ module Hedgehog
   module Input
     class MultilineHandler
       def should_newline?(text)
-        return true if Hedgehog::Command.new(text).expecting_something_before_eof?
+        command = Hedgehog::Command.new(text)
+
+        if command.treat_as_shell?
+          return true if command.expecting_something_before_eof?
+        else
+
+        end
+
         last_line_has_backslash_at_end?(text)
       end
 

@@ -45,15 +45,15 @@ module Hedgehog
         @env_vars = @command.children.select { |leaf| leaf.type == :env_var }
       end
     rescue Hedgehog::Parse::UnexpectedToken => e
-      # Hedgehog::Terminal.cooked!
-      # print "\x1b[38;5;8m"
-      # puts
-      # puts e
-      # puts e.backtrace[0..1]
-      #   .map { |s| s.gsub("/Users/dan2552/Dropbox/Hedgehog/", "") }
-      #   .select { |s| !s.include?("base_handler.rb") }
-      # puts
-      # print "\x1b[0m"
+      Hedgehog::Terminal.cooked!
+      print "\x1b[38;5;8m"
+      puts
+      puts e
+      puts e.backtrace[0..1]
+        .map { |s| s.gsub("/Users/dan2552/Dropbox/Hedgehog/", "") }
+        .select { |s| !s.include?("base_handler.rb") }
+      puts
+      print "\x1b[0m"
       @expecting_something_before_eof = true
     end
 

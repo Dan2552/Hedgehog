@@ -6,8 +6,8 @@ require_relative 'handlers/env_var_handler'
 module Hedgehog
   module Parse
     class Parser
-      def initialize(tokens)
-        @state = State.new(tokens)
+      def initialize(tokens, root = RootHandler)
+        @state = State.new(tokens, root)
       end
 
       def parse
