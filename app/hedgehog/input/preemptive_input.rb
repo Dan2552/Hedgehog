@@ -22,6 +22,10 @@ module Hedgehog
         @io_r
       end
 
+      def writer
+        @io_w
+      end
+
       private
 
       def start_listening
