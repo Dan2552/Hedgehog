@@ -32,7 +32,7 @@ module Hedgehog
       def run(command)
         binding_instance = Hedgehog::Execution::Ruby::Binding.shared_instance
         return_value = binding_instance._run(command.original)
-        puts "=> #{return_value.inspect}"
+        puts "=> #{CodeRay.scan(return_value.inspect.to_s, :ruby).term}"
         binding_instance._binding.local_variable_set(:_, return_value)
       rescue Exception => e
         puts e

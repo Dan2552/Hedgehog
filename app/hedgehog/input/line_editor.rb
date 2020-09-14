@@ -107,6 +107,8 @@ module Hedgehog
               bg_color: 15
             )
           )
+        else
+          text_to_render = CodeRay.scan(text_to_render, :ruby).term
         end
 
         print(text_to_render)
