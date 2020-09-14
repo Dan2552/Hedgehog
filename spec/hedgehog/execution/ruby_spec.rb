@@ -52,9 +52,13 @@ describe Hedgehog::Execution::Ruby do
     end
 
     it "prints the output" do
+      output = "=> \e[31m\e[1;31m\"\e[0m\e[31mhi\e[1;31m\"\e[0m\e[31m\e[0m"
+
+      expect(Hedgehog::StringExtensions.without_color(output)).to eq("=> \"hi\"")
+
       expect(STDOUT)
         .to receive(:puts)
-        .with("=> \"hi\"")
+        .with(output)
 
       subject
     end

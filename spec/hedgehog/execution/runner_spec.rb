@@ -1,30 +1,23 @@
 describe Hedgehog::Execution::Runner do
   let(:is_history_enabled) { false }
-  let(:described_instance) do
-    described_class.new(is_history_enabled: is_history_enabled)
-  end
 
   before do
     Hedgehog::Settings.configure do |config|
       config.execution_order = [
         Hedgehog::Execution::Noop.new,
         Hedgehog::Execution::Alias.new,
-        Hedgehog::Execution::Binary.new,
+        Hedgehog::Execution::Shell.new,
         Hedgehog::Execution::Ruby.new,
       ]
       config.input_history = Hedgehog::Input::History.new
     end
   end
 
-  describe "#run" do
+  describe ".run" do
     let(:command_string) { "echo hello" }
-    subject { described_instance.run(command_string) }
+    subject { described_class.run(command_string) }
 
     it "builds a command from the string" do
-      allow_any_instance_of(Hedgehog::Command)
-        .to receive(:incomplete?)
-        .and_return(true)
-
       expect(Hedgehog::Command)
         .to receive(:new)
         .with(command_string)
@@ -61,22 +54,6 @@ describe Hedgehog::Execution::Runner do
       it "does not add the command to history" do
         expect(history)
           .to_not receive(:<<)
-
-        subject
-      end
-    end
-
-    context "when history is enabled" do
-      let(:is_history_enabled) { true }
-
-      let(:history) do
-        double.tap { |h| Hedgehog::Settings.shared_instance.input_history = h }
-      end
-
-      it "adds the command to history" do
-        expect(history)
-          .to receive(:<<)
-          .with(command_string)
 
         subject
       end

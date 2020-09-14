@@ -29,7 +29,7 @@ describe Hedgehog::Execution::Alias do
   describe "run" do
     subject { described_instance.run(command) }
 
-    let(:cd_proc) { double(call: nil, present?: true) }
+    let(:cd_proc) { double(:cd_proc, call: nil, present?: true) }
 
     before do
       allow(Hedgehog::State.shared_instance)
@@ -38,12 +38,12 @@ describe Hedgehog::Execution::Alias do
     end
 
     context "when the command binary_name is an alias" do
-      let(:command) { double(binary_name: "cd", arguments: double) }
+      let(:command) { Hedgehog::Command.new("cd ~/somewhere/over.the/rainbow one two") }
 
       it "runs the alias proc" do
         expect(cd_proc)
           .to receive(:call)
-          .with(command.arguments)
+          .with("~/somewhere/over.the/rainbow one two")
 
         subject
       end

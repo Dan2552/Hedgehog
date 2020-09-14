@@ -5,14 +5,14 @@ describe Hedgehog::Execution::Shell do
   describe "#validate" do
     subject { described_instance.validate(command) }
 
-    context "when binary_path is present" do
-      let(:command) { double(binary_path: double(present?: true)) }
+    context "when the command is #treat_as_shell? as true" do
+      let(:command) { double(treat_as_shell?: true) }
 
       it { is_expected.to eq(true) }
     end
 
-    context "when binary_path is not present" do
-      let(:command) { double(binary_path: double(present?: false)) }
+    context "when the command is #treat_as_shell? as true" do
+      let(:command) { double(treat_as_shell?: false) }
 
       it { is_expected.to eq(false) }
     end
@@ -20,12 +20,14 @@ describe Hedgehog::Execution::Shell do
 
   describe "run" do
     subject { described_instance.run(command) }
-    let(:command) { double(with_binary_path: "abcdefg") }
+    let(:command) { double(expanded: "abcdefg") }
 
     it "spawns a pty with with_binary_path" do
+      rehyrate = Bundler.root.join("bin", "rehydrate_stdin.rb").to_s + " $?"
+
       expect(PTY)
         .to receive(:spawn)
-        .with("$(exit 0); " + command.with_binary_path)
+        .with("$(exit 0); " + command.expanded + "; " + rehyrate)
 
       subject
     end
@@ -36,9 +38,11 @@ describe Hedgehog::Execution::Shell do
       end
 
       it "spawns a process with that exit code" do
+        rehyrate = Bundler.root.join("bin", "rehydrate_stdin.rb").to_s + " $?"
+
         expect(PTY)
           .to receive(:spawn)
-          .with("$(exit 123); " + command.with_binary_path)
+          .with("$(exit 123); " + command.expanded + "; " + rehyrate)
 
         subject
       end
