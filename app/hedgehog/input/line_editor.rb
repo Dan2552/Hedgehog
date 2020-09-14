@@ -96,7 +96,7 @@ module Hedgehog
 
         print(prompt)
 
-        text_to_render = line.text.gsub("\n", "\n\e[0G")
+        text_to_render = line.text
 
         if @history_matching.present?
           text_to_render.sub!(
@@ -106,9 +106,9 @@ module Hedgehog
               color: 0,
               bg_color: 15
             )
-          )
+          ).gsub("\n", "\n\e[0G")
         else
-          text_to_render = CodeRay.scan(text_to_render, :ruby).term
+          text_to_render = CodeRay.scan(text_to_render, :ruby).term.gsub("\n", "\n\e[0G")
         end
 
         print(text_to_render)
