@@ -6,4 +6,7 @@ source /usr/local/share/chruby/chruby.sh
 chruby 2.6.5
 export BUNDLE_GEMFILE=$app_dir/Gemfile
 cmd=$(which bundle)
+
+bundle check >/dev/null || bundle install
+
 exec $cmd exec ruby $app_dir/bin/hedgehog
