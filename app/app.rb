@@ -14,6 +14,7 @@ begin
   require 'yaml'
   require 'fileutils'
   require 'erb'
+  require 'coderay'
 
   include Hedgehog::DSL
 
