@@ -712,5 +712,16 @@ RSpec.describe Hedgehog::Parse::Parser do
         expect(subject.to_s).to eq("abc abc; abc abc | abc abc; abc abc; abc abc | abc abc")
       end
     end
+
+    describe "git log origin/$(current-branch) -1 --oneline" do
+      let(:command) { "git log origin/$(current-branch) -1 --oneline" }
+      let(:tokens) do
+        Hedgehog::Parse::Tokens.new(command).tokenize
+      end
+
+      it "parses ok" do
+        expect(subject.to_s).to eq(command)
+      end
+    end
   end
 end

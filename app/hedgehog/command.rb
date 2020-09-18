@@ -133,7 +133,7 @@ module Hedgehog
       following_arguments = @arguments[1..-1].map(&:to_s).join(" ")
       env_vars = @env_vars.map(&:to_s).join(" ")
 
-      # puts "{{{ #{env_vars} #{binary_path} #{following_arguments} }}}".strip
+      puts "{{{ #{env_vars} #{binary_path} #{following_arguments} }}}".strip
 
       "#{env_vars} #{binary_path} #{following_arguments}".strip
     end

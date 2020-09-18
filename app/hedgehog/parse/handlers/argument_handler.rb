@@ -7,6 +7,12 @@ module Hedgehog
           state.pop_handler!
         when :single_quote, :double_quote
           parts << spawn(StringHandler)
+        when :dollar
+          if state.peek(2).last == :left_parenthesis
+            parts << spawn(CommandSubstitutionHandler)
+          else
+            parts << state.consume_current_token!
+          end
         else
           consumed_tokens = consume_tokens_until do
             [
@@ -16,7 +22,8 @@ module Hedgehog
               :double_quote,
               :newline,
               :right_parenthesis,
-              :semicolon
+              :semicolon,
+              :dollar
             ].include?(current_token.type)
           end
           log("consumed #{consumed_tokens.count} tokens")
