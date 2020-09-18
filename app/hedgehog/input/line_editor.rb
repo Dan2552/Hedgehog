@@ -108,7 +108,8 @@ module Hedgehog
             )
           ).gsub("\n", "\n\e[0G")
         else
-          # text_to_render = CodeRay.scan(text_to_render, :ruby).term.gsub("\n", "\n\e[0G")
+          # text_to_render = CodeRay.scan(text_to_render, :ruby).term
+          text_to_render = text_to_render.gsub("\n", "\n\e[0G")
         end
 
         print(text_to_render)
