@@ -14,5 +14,4 @@ if [[ $GEM_HOME == "" ]]; then
 fi
 
 export BUNDLE_GEMFILE=$app_dir/Gemfile
-
-exec $HOME/.gem/ruby/2.6.5/bin/bundle exec ruby $app_dir/bin/hedgehog
+exec $HOME/.gem/ruby/2.6.5/bin/bundle exec $HOME/.rubies/ruby-2.6.5/bin/ruby $app_dir/bin/hedgehog
