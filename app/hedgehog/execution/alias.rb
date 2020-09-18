@@ -6,7 +6,7 @@ module Hedgehog
       end
 
       def run(command)
-        output = aliases[command.binary_name.to_s].call(command.arguments_collection[1..-1].join(" "))
+        output = aliases[command.binary_name.to_s].call(command.arguments_collection[1..-1])
         set_underscore(output)
       rescue LocalJumpError
         # Allow calls to `break`

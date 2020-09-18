@@ -59,10 +59,14 @@ module Hedgehog
       # COMP_POINT
       #
       HOMEBREW_BASH_COMPLETIONS = proc { |input|
+        # Skip homebrew completions if brew is not in $PATH
+        guard = <<-BASH
+          which brew >/dev/null || exit 0
+        BASH
+
+        # This snippet is the same snippet homebrew recommends using for
+        # completion.
         homebrew_snippet = <<-BASH
-          # This snippet is the same snippet homebrew recommends using for
-          # completion
-          #
           HOMEBREW_PREFIX=$(brew --prefix)
           if type brew &>/dev/null; then
             for COMPLETION in "$HOMEBREW_PREFIX"/etc/bash_completion.d/*
@@ -79,7 +83,6 @@ module Hedgehog
         completion_snippet = <<-BASH
           # We have to do a conversion here because ENV vars outside of bash
           # don't actually support bash arrays
-          #
           COMP_WORDS=#{ENV["COMP_WORDS"]}
 
           completion=$(complete -p "${COMP_WORDS[0]}" 2>/dev/null | awk '{print $(NF-1)}')
@@ -92,7 +95,7 @@ module Hedgehog
           printf '%s\n' "${COMPREPLY[@]}"
         BASH
 
-        cmd = ["bash", "-c", "#{homebrew_snippet}\n#{completion_snippet}"]
+        cmd = ["bash", "-c", "#{guard}\n#{homebrew_snippet}\n#{completion_snippet}"]
         result = IO.popen(cmd, 'r+') do |io|
           io.close_write
           io.read

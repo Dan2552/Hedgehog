@@ -1,6 +1,14 @@
 module Hedgehog
   class Command
+    class Arguments < SimpleDelegator
+      def to_s
+        join(" ")
+      end
 
+      def [](*args)
+        Arguments.new(super(*args))
+      end
+    end
 # TODO: kill off these constants
     # I.e. will only match spaces that don't have a proceeding `\`
     #
@@ -117,7 +125,7 @@ module Hedgehog
     end
 
     def arguments_collection
-      @arguments&.map(&:to_s) || []
+      Arguments.new(@arguments&.map(&:to_s) || [])
     end
 
     def expanded
