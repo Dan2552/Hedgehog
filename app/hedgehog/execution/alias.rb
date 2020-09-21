@@ -2,7 +2,9 @@ module Hedgehog
   module Execution
     class Alias
       def validate(command)
-        !command.binary_path.present? && aliases[command.binary_name.to_s].present?
+        there_is_an_alias = aliases[command.binary_name.to_s].present?
+        path_is_supplied = command.binary_path && command.original.start_with?(command.binary_path)
+        there_is_an_alias && !path_is_supplied
       end
 
       def run(command)
