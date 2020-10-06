@@ -10,7 +10,7 @@ if [[ $GEM_HOME == "" ]]; then
   export RUBY_VERSION="2.6.5"
   export RUBYOPT=" "
   export GEM_PATH="$HOME/.gem/ruby/2.6.5:$HOME/.rubies/ruby-2.6.5/lib/ruby/gems/2.6.0"
-  export PATH="$PATH:/Users/dan2552/.gem/ruby/2.6.5/bin:/Users/dan2552/.rubies/ruby-2.6.5/lib/ruby/gems/2.6.0/bin:/Users/dan2552/.rubies/ruby-2.6.5/bin"
+  export PATH="$PATH:$HOME/.gem/ruby/2.6.5/bin:$HOME/.rubies/ruby-2.6.5/lib/ruby/gems/2.6.0/bin:$HOME/.rubies/ruby-2.6.5/bin"
 fi
 
 export BUNDLE_GEMFILE=$app_dir/Gemfile
