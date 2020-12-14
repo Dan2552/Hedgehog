@@ -1,3 +1,27 @@
-#!/usr/bin/env ruby
+#!/usr/bin/env sh
 
-require_relative '../app/app'
+VERSION="2.6.5"
+BASE_VERSION="2.6.0"
+
+current_dir=$(pwd)
+script_dir=$( cd "$( dirname "$0" )" && pwd )
+app_dir=$script_dir/..
+export BUNDLE_GEMFILE="$app_dir/Gemfile"
+
+export RUBY_VERSION=$VERSION
+export GEM_HOME=$HOME/.gem/ruby/$RUBY_VERSION
+export RUBY_ENGINE=ruby
+export GEM_ROOT=$HOME/.rubies/ruby-$RUBY_VERSION/lib/ruby/gems/$BASE_VERSION
+export GEM_PATH=$GEM_HOME:$GEM_ROOT
+export PATH=$HOME/.rubies/ruby-$RUBY_VERSION/bin:$GEM_HOME/bin:$GEM_PATH:$PATH
+
+if [[ ! -f "$GEM_HOME/bin/bundle" ]]; then
+  gem install bundler
+fi
+
+function check_bundle() {
+  echo "Failed to launch hedgehog... Attempting to automatically setup and relaunch."
+  cd $app_dir && bundle install && cd $current_dir && bundle exec $app_dir/bin/boot/hedgehog
+}
+
+bundle exec $app_dir/bin/boot/hedgehog || check_bundle

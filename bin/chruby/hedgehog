@@ -1,17 +1,4 @@
 #!/usr/bin/env sh
 
 script_dir=$( cd "$( dirname "$0" )" && pwd )
-app_dir=$script_dir/../..
-
-if [[ $GEM_HOME == "" ]]; then
-  export GEM_HOME="$HOME/.gem/ruby/2.6.5"
-  export RUBY_ENGINE="ruby"
-  export GEM_ROOT="$HOME/.rubies/ruby-2.6.5/lib/ruby/gems/2.6.0"
-  export RUBY_VERSION="2.6.5"
-  export RUBYOPT=" "
-  export GEM_PATH="$HOME/.gem/ruby/2.6.5:$HOME/.rubies/ruby-2.6.5/lib/ruby/gems/2.6.0"
-  export PATH="$PATH:$HOME/.gem/ruby/2.6.5/bin:$HOME/.rubies/ruby-2.6.5/lib/ruby/gems/2.6.0/bin:$HOME/.rubies/ruby-2.6.5/bin"
-fi
-
-export BUNDLE_GEMFILE=$app_dir/Gemfile
-exec $HOME/.gem/ruby/2.6.5/bin/bundle exec $HOME/.rubies/ruby-2.6.5/bin/ruby $app_dir/bin/hedgehog
+"$script_dir/../hedgehog"
