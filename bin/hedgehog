@@ -4,7 +4,7 @@ VERSION="2.6.5"
 BASE_VERSION="2.6.0"
 
 current_dir=$(pwd)
-script_dir=$( cd "$( dirname "$0" )" && pwd )
+script_dir=$(dirname $(readlink "$0"))
 app_dir=$script_dir/..
 export BUNDLE_GEMFILE="$app_dir/Gemfile"
 
