@@ -24,7 +24,7 @@ module Hedgehog
         #
         # The $? is passed in as an arument so it can set the status back to the
         # original command's again.
-        rehyrate = Bundler.root.join("bin", "rehydrate_stdin.rb").to_s + " $?"
+        rehyrate = Bundler.root.join("bin", "rehydrate", "rehydrate_stdin.rb").to_s + " $?"
 
         to_execute = [
           set_previous_status,
