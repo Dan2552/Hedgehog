@@ -11,7 +11,9 @@ module Hedgehog
       # Specifically does _not_ use `IO.console.raw!` because it apparently
       # gobbles up all STDIN that's currently in queue. Which is no good,
       # because we want characters typed before Hedgehog loads.
-      system("stty raw -echo")
+      Hedgehog::Process.retain_status_values do
+        system("stty raw -echo")
+      end
     end
 
     # Restores silenced state. See `silence!` for more info.

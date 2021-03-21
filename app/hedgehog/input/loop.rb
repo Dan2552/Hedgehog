@@ -24,8 +24,6 @@ module Hedgehog
       end
 
       def get_prompt
-        check_exit_status = $?
-
         Hedgehog::Process.retain_status_values do
           Hedgehog::State.shared_instance.prompt.call
         end || "> "

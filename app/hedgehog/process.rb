@@ -20,15 +20,18 @@ module Hedgehog
           pid = previous_status.pid
           exitstatus = previous_status.exitstatus
           inspect_value = previous_status.inspect
+          to_s_value = "exit #{exitstatus}"
         else
           pid = nil
           exitstatus = nil
           inspect_value = "#<Process::Status: no process>"
+          to_s_value = "no process"
         end
 
         $?.define_singleton_method(:pid, proc { pid })
         $?.define_singleton_method(:exitstatus, proc { exitstatus })
         $?.define_singleton_method(:inspect, proc { inspect_value })
+        $?.define_singleton_method(:to_s, proc { to_s_value })
       end
     end
   end
