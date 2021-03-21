@@ -96,7 +96,7 @@ module Hedgehog
 
         print(prompt)
 
-        text_to_render = line.text
+        text_to_render = line.text.dup
 
         if @history_matching.present?
           text_to_render.sub!(
