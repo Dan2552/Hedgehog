@@ -15,6 +15,7 @@ begin
   require 'fileutils'
   require 'erb'
   require 'coderay'
+  require 'rouge'
 
   include Hedgehog::DSL
 

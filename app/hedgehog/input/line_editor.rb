@@ -108,7 +108,10 @@ module Hedgehog
             )
           ).gsub("\n", "\n\e[0G")
         else
-          text_to_render = CodeRay.scan(text_to_render, :ruby).term
+          @formatter ||= Rouge::Formatters::Terminal256.new(Rouge::Themes::Github.new)
+          @lexer ||= Rouge::Lexers::Shell.new
+          text_to_render = @formatter.format(@lexer.lex(text_to_render))
+          # text_to_render = CodeRay.scan(text_to_render, :ruby).term
           text_to_render = text_to_render.gsub("\n", "\n\e[0G")
         end
 
