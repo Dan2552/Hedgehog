@@ -42,10 +42,16 @@ module Hedgehog
           # really know whether the first character is from a sequence or just
           # an escape keypress. The workaround is to wait and see.
           thread = Thread.new {
-            2.times { characters << input_source.getc.chr }
+            characters << input_source.getc.chr
+            representation = Character.new(characters.join(""))
 
-            characters << input_source.getc.chr if characters == ["\e", "[", "3"]
-            3.times { characters << input_source.getc.chr } if characters.join("").start_with?("\e[1")
+            if representation.is?(:option_left) || representation.is?(:option_right)
+              # escape early
+            else
+              characters << input_source.getc.chr
+              characters << input_source.getc.chr if characters == ["\e", "[", "3"]
+              3.times { characters << input_source.getc.chr } if characters.join("").start_with?("\e[1")
+            end
           }
           thread.join(ESCAPE_WAIT_LIMIT)
           thread.kill

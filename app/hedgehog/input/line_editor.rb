@@ -223,6 +223,10 @@ module Hedgehog
 
         _, range, _ = current_word_and_range_and_index
         line.cursor_index = range.last + 1
+
+        if line.cursor_index > line.visible_length
+          line.cursor_index = line.visible_length
+        end
         redraw
       end
 
