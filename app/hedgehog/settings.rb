@@ -8,11 +8,16 @@ module Hedgehog
       yield(shared_instance)
     end
 
+    def initialize
+      @theme = Rouge::Themes::Github.new
+    end
+
     attr_accessor :binary_in_path_finder
     attr_accessor :disabled_built_ins
     attr_accessor :execution_order
     attr_accessor :input_history
     attr_accessor :input_source
+    attr_accessor :theme
 
     # Disables user input/interaction.
     #
