@@ -16,6 +16,15 @@ module Hedgehog
         # e.g `$(exit 12); echo $?` will print 12
         set_previous_status = "$(exit #{$?&.exitstatus || 0})"
 
+        # If we're in a path with a `Gemfile`, in all likelihood we want to run
+        # `bundle exec [command]`.
+        bundle_exec = ""
+        bundle_exec = "bundle exec " if File.file?("./Gemfile") &&
+          command.binary_name != "bundle" &&
+          system("which bundle >/dev/null") &&
+          system("bundle check >/dev/null 2>/dev/null")
+
+
         # This command is run after the desired command to capture any STDIN
         # that wasn't consumed by the desired command, so it can be re-run.
         #
@@ -28,7 +37,7 @@ module Hedgehog
 
         to_execute = [
           set_previous_status,
-          command.with_binary_path,
+          bundle_exec + command.with_binary_path,
           rehyrate
         ].join("; ")
 
