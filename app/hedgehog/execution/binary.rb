@@ -22,8 +22,11 @@ module Hedgehog
         bundle_exec = "bundle exec " if File.file?("./Gemfile") &&
           command.binary_name != "bundle" &&
           system("which bundle >/dev/null") &&
-          system("bundle check >/dev/null 2>/dev/null")
-
+          system("bundle check >/dev/null 2>/dev/null") &&
+          (
+            command.binary_path.start_with?("#{ENV["HOME"]}/.rubies") ||
+            command.binary_path.start_with?("#{ENV["HOME"]}/.gem")
+          )
 
         # This command is run after the desired command to capture any STDIN
         # that wasn't consumed by the desired command, so it can be re-run.
