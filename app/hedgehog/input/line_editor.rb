@@ -208,25 +208,14 @@ module Hedgehog
       end
 
       def go_left_by_word
-        if line[line.cursor_index - 1] == " "
-          go_left
-        end
-        _, range, _ = current_word_and_range_and_index
-        line.cursor_index = range.first
+        new_index = WordBoundary.find_word_boundary(line.text, line.cursor_index, false)
+        line.cursor_index = new_index
         redraw
       end
 
       def go_right_by_word
-        go_right if line.cursor_index == 0
-        go_right if line[line.cursor_index] == " "
-        go_right if line[line.cursor_index - 1] == " "
-
-        _, range, _ = current_word_and_range_and_index
-        line.cursor_index = range.last + 1
-
-        if line.cursor_index > line.visible_length
-          line.cursor_index = line.visible_length
-        end
+        new_index = WordBoundary.find_word_boundary(line.text, line.cursor_index, true)
+        line.cursor_index = new_index
         redraw
       end
 
