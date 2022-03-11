@@ -1,0 +1,193 @@
+#!/usr/bin/env ruby
+
+paths = [
+  "/usr/sbin/",
+  "/usr/local/bin",
+  "/usr/local/sbin",
+  "/sbin",
+  "$PATH"
+].join(":")
+
+run "export PATH=#{paths}"
+run "export OBJC_DISABLE_INITIALIZE_FORK_SAFETY=YES"
+run "export EDITOR=VIM"
+
+Hedgehog::Settings.configure do |conf|
+  conf.theme = Rouge::Themes::Base16.mode(:dark).new
+end
+
+class String
+  def black;          "\e[30m#{self}\e[0m" end
+  def red;            "\e[31m#{self}\e[0m" end
+  def green;          "\e[32m#{self}\e[0m" end
+  def brown;          "\e[33m#{self}\e[0m" end
+  def yellow;         "\e[33m#{self}\e[0m" end
+  def blue;           "\e[34m#{self}\e[0m" end
+  def magenta;        "\e[35m#{self}\e[0m" end
+  def cyan;           "\e[36m#{self}\e[0m" end
+  def gray;           "\e[37m#{self}\e[0m" end
+
+  def bg_black;       "\e[40m#{self}\e[0m" end
+  def bg_red;         "\e[41m#{self}\e[0m" end
+  def bg_green;       "\e[42m#{self}\e[0m" end
+  def bg_brown;       "\e[43m#{self}\e[0m" end
+  def bg_blue;        "\e[44m#{self}\e[0m" end
+  def bg_magenta;     "\e[45m#{self}\e[0m" end
+  def bg_cyan;        "\e[46m#{self}\e[0m" end
+  def bg_gray;        "\e[47m#{self}\e[0m" end
+
+  def bold;           "\e[1m#{self}\e[22m" end
+  def italic;         "\e[3m#{self}\e[23m" end
+  def underline;      "\e[4m#{self}\e[24m" end
+  def blink;          "\e[5m#{self}\e[25m" end
+  def reverse_color;  "\e[7m#{self}\e[27m" end
+end
+
+class ClipboardProxy < String
+  def underscore!
+    copy_to_clipboard(underscore)
+  end
+
+  def markdown_quote
+    split("\n")
+      .map { |line| "> #{line}" }
+      .join("\n")
+  end
+
+  def markdown_quote!
+    copy_to_clipboard(markdown_quote)
+  end
+
+  def markdown_code
+    "```\n#{self}\n```"
+  end
+
+  def markdown_code!
+    copy_to_clipboard(markdown_code)
+  end
+
+  def copy_to_clipboard(new_value, silent: false)
+    IO.popen('pbcopy', 'w') { |f| f << new_value }
+    puts "Copied to clipboard!" unless silent
+    ClipboardProxy.new(new_value)
+  end
+end
+
+def clipboard(new_value = nil, silent: false)
+  return ClipboardProxy.new("").copy_to_clipboard(new_value, silent: silent) if new_value
+  ClipboardProxy.new(`pbpaste`.chomp)
+end
+
+def cwd
+  path = Dir.pwd
+  home = File.expand_path("~")
+
+  path == home ? "~" : path.split("/").last
+end
+
+prompt { cwd.red + " > ".gray }
+
+function "config" do |args|
+  `vim ~/.hedgehog`
+end
+
+def migrate!
+  `bundle check >/dev/null 2>&1 || bundle`
+  return puts "FAILED" unless $?.exitstatus == 0
+  puts "Dropping..."
+  `bundle exec rake db:environment:set >/dev/null 2>/dev/null`
+  `bundle exec rake db:drop >/dev/null 2>/dev/null`
+  return puts "FAILED" unless $?.exitstatus == 0
+  puts "Creating..."
+  `bundle exec rake db:create >/dev/null 2>/dev/null`
+  return puts "FAILED" unless $?.exitstatus == 0
+  puts "Migrating..."
+  `bundle exec rake db:migrate >/dev/null 2>/dev/null`
+  return puts "FAILED" unless $?.exitstatus == 0
+  puts "Preparing tests..."
+  `bundle exec rake db:test:prepare >/dev/null 2>/dev/null`
+  return puts "FAILED" unless $?.exitstatus == 0
+  puts "Done!"
+
+  "💃"
+end
+
+original_cd = function "cd"
+function "cd" do |args|
+  original_cd.call(args)
+  if File.exists?(".ruby-version")
+    run "chruby #{`cat .ruby-version`.chomp}"
+  end
+end
+
+function "chruby" do |args|
+  rubies = `ls ~/.rubies`.chomp.split(" ")
+  if args.count == 0
+    rubies.each do |version|
+      puts version
+    end
+    puts "\nCurrent: #{`which ruby`.chomp}"
+  else
+    target_version = args.first
+    base_version = target_version.sub(/.(\d+)$/, ".0")
+    unless rubies.include?("ruby-#{target_version}")
+      STDERR.puts("ruby #{target_version} is not installed.\n\nRubies available:\n")
+      rubies.each do |version|
+        puts version
+      end
+      break
+    end
+    path = ENV["PATH"]
+    paths = path.split(":")
+    paths.delete_if { |p| p.match(/^(.*\/\.rubies\/.*|.*\/\.gem\/.*)$/) }
+    path = paths.join(":")
+    run "export RUBY_VERSION=#{target_version}"
+    run "export GEM_HOME=$HOME/.gem/ruby/$RUBY_VERSION"
+    run "export RUBY_ENGINE=ruby"
+    run "export GEM_ROOT=$HOME/.rubies/ruby-$RUBY_VERSION/lib/ruby/gems/#{base_version}"
+    run "export GEM_PATH=$GEM_HOME:$GEM_ROOT"
+    run "export PATH=$HOME/.rubies/ruby-$RUBY_VERSION/bin:$GEM_HOME/bin:$GEM_PATH:#{path}"
+  end
+end
+
+function "be" do |args|
+  run("bundle exec #{args}")
+end
+
+function "rspec" do |args|
+  run("bundle check >/dev/null || bundle")
+  run("bundle exec rspec --format documentation #{args}")
+end
+
+function "rebase" do |args|
+  run("git rebase --interactive HEAD~#{args}")
+end
+
+function "abort" do
+  run("git rebase --abort 2> /dev/null")
+  run("git cherry-pick --abort 2> /dev/null")
+  run("git merge --abort 2> /dev/null")
+  run("git status")
+end
+
+function "reset" do |args|
+  run("git fetch")
+  run("git reset --hard #{args}")
+end
+
+function "pick" do |args|
+  run("git cherry-pick #{args}")
+end
+
+function "n64" do |args|
+  run("echo -n #{args} | base64")
+end
+
+function "stash!" do |args|
+  run("git add . -A")
+  run("git stash")
+end
+
+if File.exists?(".ruby-version")
+  run "chruby #{`cat .ruby-version`.chomp}"
+end
